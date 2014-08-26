@@ -1,0 +1,30 @@
+{
+  "name": "any-db-mssql",
+  "version": "0.0.1",
+  "description": "The MSSQL adapter for any-db",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hypermediaisobar-admin/node-any-db-mssql.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Hypermediaisobar-admin/node-any-db-mssql/issues"
+  },
+  "keywords": [
+    "any-db",
+    "anydb",
+    "mssql",
+    "adapter"
+  ],
+  "author": "Marcin Konicki <ahwayakchih@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "tedious": "^1.4.0"
+  },
+  "peerDependencies": {
+    "any-db": "~2.1.0"
+  },
+  "devDependencies": {
+    "any-db-adapter-spec": "~2.1.0"
+  }
+}
