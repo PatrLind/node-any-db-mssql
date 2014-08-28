@@ -1,14 +1,14 @@
 # any-db-mssql
 
-This is the MSSQL adapter for Any-DB. It relies on the [Tedious][Tedious]
+This is the MSSQL adapter for Any-DB. It relies on the [Tedious][1]
 database driver to create connection and query objects that conform to the
-[Any-DB API](https://github.com/grncdr/node-any-db-adapter-spec).
+[Any-DB API][2].
 
 ## API extensions
 
 The connections this module creates inherit from the constructor
 functions in `require('tedious')`, so any methods that `tedious` supports beyond
-those [specified by Any-DB][Connection] are also available to you.
+those specified by Any-DB [Connection][3] are also available to you.
 
 Keep in mind that these methods will *not* necessarily work with other backends.
 
@@ -59,13 +59,15 @@ Every one of the environment variables mentioned above is optional, if it will n
 
 ## Generating JSDoc
 
-Generate documentation using [JSDoc][JSDoc]:
+Generate documentation using [JSDoc][4]:
 
-    jsdoc -c jdcoc.conf.json -d documentation index.js
+    jsdoc -c jsdoc.conf.json -d documentation index.js
 
 ## License
 
 BSD3
 
-[Connection]: https://github.com/grncdr/node-any-db-adapter-spec#connection
-[Tedious]: http://pekim.github.io/tedious/
+[1]: http://pekim.github.io/tedious/
+[2]: https://github.com/grncdr/node-any-db-adapter-spec
+[3]: https://github.com/grncdr/node-any-db-adapter-spec#connection
+[4]: http://usejsdoc.org/
