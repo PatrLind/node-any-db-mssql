@@ -2,36 +2,36 @@ var EventEmitter = require('events').EventEmitter;
 var sql = require('tedious');
 
 /**
- *	Implementation of Adapter as defined by any db API.
- *	@module any-db-mssql
+ * Implementation of Adapter as defined by any db API.
+ * @module any-db-mssql
  */
 
 /**
- *  Database connection options Object.
+ * Database connection options Object.
  *
- *  @external Tedious~ConfigOptions
- *  @see {@link http://pekim.github.io/tedious/api-connection.html#function_newConnection}
- *  @property {String} [instanceName] - e.g., 'SQLEXPRESS'.
- *  @property {String} [database] - database name, e.g., 'MyDataBase'.
- *  @property {Number} [port] - server port, e.g., 1433.
+ * @external Tedious~ConfigOptions
+ * @see {@link http://pekim.github.io/tedious/api-connection.html#function_newConnection}
+ * @property {String} [instanceName] - e.g., 'SQLEXPRESS'.
+ * @property {String} [database] - database name, e.g., 'MyDataBase'.
+ * @property {Number} [port] - server port, e.g., 1433.
  */
 
 /**
- *  Database connection configuration Object.
+ * Database connection configuration Object.
  *
- *  @external Tedious~Config
- *	@see {@link http://pekim.github.io/tedious/api-connection.html#function_newConnection}
- *  @property {String} server - address, e.g., '10.48.0.1'.
- *  @property {String} userName - user name, e.g., 'MyUserName'.
- *  @property {String} password
- *  @property {Tedious~ConfigOptions} [options]
+ * @external Tedious~Config
+ * @see {@link http://pekim.github.io/tedious/api-connection.html#function_newConnection}
+ * @property {String} server - address, e.g., '10.48.0.1'.
+ * @property {String} userName - user name, e.g., 'MyUserName'.
+ * @property {String} password
+ * @property {Tedious~ConfigOptions} [options]
  */
 
 /**
  *  Default configuration for connections.
  *
  *  @private
- *	@type {Tedious~Config}
+ * @type {Tedious~Config}
  */
 var defaultConfig = {
 	userName: 'sa',
@@ -45,18 +45,18 @@ var defaultConfig = {
 };
 
 /**
- *	Any DB config.
+ * Any DB config.
  *
- *	@external any-db~Config
- *	@see {@link https://github.com/grncdr/node-any-db-adapter-spec#adaptercreateconnection}
+ * @external any-db~Config
+ * @see {@link https://github.com/grncdr/node-any-db-adapter-spec#adaptercreateconnection}
  */
 
 /**
- *	Convert config provided by Any DB to the one used by Tedious.
+ * Convert config provided by Any DB to the one used by Tedious.
  *
- *	@private
- *	@param {any-db~Config} anyConfig
- *	@return {Tedious~Config}
+ * @private
+ * @param {any-db~Config} anyConfig
+ * @return {Tedious~Config}
  */
 var parseConfig = function(anyConfig){
 	var result = {};
@@ -79,22 +79,106 @@ var parseConfig = function(anyConfig){
 };
 
 /**
- *  Request parameters Object.
- *  Each key is a parameter name, and each value is that value. Data types will be detected automatically.
+ * Each key is a parameter name, and each value is that value.
+ * Data types will be detected automatically.
  *
- *  @typedef {Object} requestParameters
+ * @typedef {Object} namedParameters
  */
 
+ /**
+ * Contains values of parameters. Each index corresponds to the parameter identifier in SQL query string.
+ * Data types will be detected automatically.
+ *
+ * @typedef {Array} positionalParameters
+ */
+
+
 /**
- *	@private
+ * Look through the parameters and "unroll" the ones with Array value, e.g.,
+ *
+ * ```sql
+ * WHERE foo IN (@foo)
+ * ```
+ *
+ * will become:
+ *
+ * ```sql
+ * WHERE foo IN (@foo1, @foo0)
+ * ```
+ *
+ * if `query.values.foo` is an Array.
+ *
+ * Since Tedious does not support positional parameters, this function will also convert
+ * them to named parameters.
+ *
+ * This function mutates `query.text` and `query.values`.
+ *
+ * @param {Query} query
+ * @return {Query} modified query
+ */
+exports.prepareQueryParameters = function(query){
+	if (!query.values) {
+		return query;
+	}
+
+	var keys = Object.keys(query.values);
+	var value;
+	var i, j, param, temp;
+
+	var newParameters = {};
+	var targetPrefix = exports.namedParameterPrefix;
+	var sourcePrefix = exports.positionalParameterPrefix;
+
+	var positional = query.values instanceof Array;
+
+	var sql = query.text;
+
+	for (i = 0; i < keys.length; i++) {
+		value = query.values[keys[i]];
+		if (!(value instanceof Array)) {
+			// Tedious does not support positional parameters, so we have to replace them with named parameters.
+			if (positional) {
+				newParameters['p'+i] = value;
+				sql = sql.replace(sourcePrefix, targetPrefix+'p'+i);
+			}
+			else {
+				newParameters[keys[i]] = value;
+			}
+			continue;
+		}
+
+		param = [];
+		temp = targetPrefix+keys[i];
+		for (j = 0; j < value.length; j++) {
+			param.push(temp+j);
+			newParameters[keys[i]+j] = value[j];
+		}
+
+		if (positional) {
+			sql.replace(sourcePrefix, param.join(', '));
+		}
+		else {
+			temp = new RegExp(temp, 'g');
+			sql = sql.replace(temp, param.join(', '));
+		}
+	}
+
+	query.values = newParameters;
+	query.text = sql;
+
+	return query;
+};
+
+/**
+ * @private
  */
 var _typeCheck = /(^\d+$)|(^\d+\.\d+$)|(^[\w\W]+$)/;
 /**
- *	Check the type of the parameter value and return maximum MSSQL type suitable for it.
- *	Defaults to VarBinary type.
+ * Check the type of the parameter value and return MSSQL type most suitable for it.
+ * Defaults to VarBinary type.
  *
- *	@param {*} value
- *	@returns {Object} MSSQL/Tedious database type.
+ * @param {*} value
+ * @returns {Object} MSSQL/Tedious database type.
  */
 exports.detectParameterType = function(value){
 	if (value === null) {
@@ -112,7 +196,7 @@ exports.detectParameterType = function(value){
 		return sql.TYPES.VarBinary;
 	}
 	else if (typeCheckResult[1] !== undefined) {
-		return sql.TYPES.BigInt;
+		return sql.TYPES.Int;
 	}
 	else if (typeCheckResult[2] !== undefined) {
 		return sql.TYPES.Real;
@@ -125,65 +209,18 @@ exports.detectParameterType = function(value){
 };
 
 /**
- *	Look through the parameters and "unroll" the ones with the Array value, e.g.,
+ * Tedious' Request object.
  *
- *	```sql
- *	WHERE foo IN (@foo)
- *	```
- *
- *	will become:
- *
- *	```sql
- *	WHERE foo IN (@foo1, @foo0)
- *	```
- *
- *	@param {String} sql
- *	@param {requestParameters} [parameters]
- *	@returns {String} sql with Array parameters replaced into multiple parameters
- */
-exports.prepareParameters = function(sql, parameters){
-	if (!parameters) {
-		return sql;
-	}
-
-	var keys = Object.keys(parameters);
-	var value;
-	var i, j, param, temp;
-
-	for (i = keys.length - 1; i >= 0; i--) {
-		value = parameters[keys[i]];
-		if (!(value instanceof Array)) {
-			continue;
-		}
-
-		param = [];
-		temp = '@'+keys[i];
-		for (j = value.length - 1; j >= 0; j--) {
-			param.push(temp+j);
-			parameters[keys[i]+j] = value[j];
-		}
-		temp = new RegExp(temp, 'g');
-		sql = sql.replace(temp, param.join(', '));
-
-		delete parameters[keys[i]];
-	}
-
-	return sql;
-};
-
-/**
- *	Tedious' Request object.
- *
- *	@external Tedious~Request
- *	@see {@link http://pekim.github.io/tedious/api-request.html}
+ * @external Tedious~Request
+ * @see {@link http://pekim.github.io/tedious/api-request.html}
  */
 
 /**
- *	Add parameters to the request.
+ * Add parameters to the request.
  *
- *	@private
- *	@param {Tedious~Request} request
- *	@param {requestParameters} [parameters]
+ * @private
+ * @param {Tedious~Request} request
+ * @param {namedParameters|positionalParameters} [parameters]
  */
 var setRequestParameters = function(request, parameters){
 	if (!parameters) {
@@ -220,72 +257,104 @@ var setRequestParameters = function(request, parameters){
  */
 
 /**
- *	EventEmitter is part of node.js API.
+ * EventEmitter is part of node.js API.
  *
- *	@external EventEmitter
- *	@see {@link http://nodejs.org/api/events.html#events_class_events_eventemitter}
+ * @external EventEmitter
+ * @see {@link http://nodejs.org/api/events.html#events_class_events_eventemitter}
  */
 
 /**
- *	Readable stream is part of node.js API.
+ * Readable stream is part of node.js API.
  *
- *	@external stream~Readable
- *	@see {@link http://nodejs.org/api/stream.html#stream_class_stream_readable}
+ * @external stream~Readable
+ * @see {@link http://nodejs.org/api/stream.html#stream_class_stream_readable}
  */
 
 /**
- *	Adapter is defined by any db API.
+ * Adapter is defined by any db API.
  *
- *	@external any-db~Adapter
- *	@see {@link https://github.com/grncdr/node-any-db-adapter-spec#adapter}
- *	@property {string} name
- *	@property {function} createConnection
- *	@property {function} createQuery
+ * @external any-db~Adapter
+ * @see {@link https://github.com/grncdr/node-any-db-adapter-spec#adapter}
+ * @property {string} name
+ * @property {function} createConnection
+ * @property {function} createQuery
  */
 
 /**
- *	Queryable is defined by any db API.
+ * Queryable is defined by any db API.
  *
- *	@external any-db~Queryable
- *	@see {@link https://github.com/grncdr/node-any-db-adapter-spec#queryable}
- *	@extends {EventEmitter}
- *	@property {any-db~Adapter} adapter
- *	@property {function} query
+ * @external any-db~Queryable
+ * @see {@link https://github.com/grncdr/node-any-db-adapter-spec#queryable}
+ * @extends {EventEmitter}
+ * @property {any-db~Adapter} adapter
+ * @property {function} query
  */
 
 /**
- *	Query is defined by any db API.
+ * Query is defined by any db API.
  *
- *	@external any-db~Query
- *	@see {@link https://github.com/grncdr/node-any-db-adapter-spec#query}
- *	@extends {stream~Readable}
- *	@property {string} text
- *	@property {Array|Object} values
- *	@property {genericCallback} callback
+ * @external any-db~Query
+ * @see {@link https://github.com/grncdr/node-any-db-adapter-spec#query}
+ * @extends {stream~Readable}
+ * @property {string} text
+ * @property {Array|Object} values
+ * @property {genericCallback} callback
  */
 
  /**
- *	Connection is defined by any db API.
+ * Connection is defined by any db API.
  *
- *	@external any-db~Connection
- *	@see {@link https://github.com/grncdr/node-any-db-adapter-spec#connection}
- *	@extends {any-db~Queryable}
- *	@property {function} end
+ * @external any-db~Connection
+ * @see {@link https://github.com/grncdr/node-any-db-adapter-spec#connection}
+ * @extends {any-db~Queryable}
+ * @property {function} end
  */
 
 /**
- *	Do not call this directly, as it has to be bound to a Queryable object.
+ * Do not call this directly, as it has to be bound to a Queryable object.
  *
- *	This function is used by `makeQueryable` function to inject into
- *	Queryable objects as `query` function.
+ * This function is used by `makeQueryable` function to inject into
+ * Queryable objects as `query` function.
  *
- *	@private
- *	@param {string|any-db~Query} query
- *	@param {Array|Object} [parameters] - used only when query is a string.
- *	@param {genericCallback} [callback] - used only when query is a string.
+ * @private
+ * @param {string|any-db~Query} query
+ * @param {Array|Object} [parameters] - used only when query is a string.
+ * @param {genericCallback} [callback] - used only when query is a string.
  */
 var execQuery = function(query, parameters, callback){
 	query = this.adapter.createQuery(query, parameters, callback);
+
+	if (query.values) {
+		exports.prepareQueryParameters(query);
+	}
+
+	query._request = new sql.Request(query.text, function(err, rowCount) {
+		query._isDone = true;
+
+		if (query._resultSet) {
+			query._resultSet.rowCount = rowCount;
+		}
+
+		if (query._connection) {
+			query._connection.close();
+			query._connection = null;
+		}
+
+		if (query._request) {
+			delete query._request;
+			query._request = null;
+		}
+
+		if (err) {
+			query.emit('error', err);
+		}
+		else if (query.callback && query._resultSet) {
+			query.callback(err, query._resultSet);
+		}
+
+		query.emit('close');
+		query.emit('end');
+	});
 
 	if (query.values) {
 		setRequestParameters(query._request, query.values);
@@ -299,7 +368,7 @@ var execQuery = function(query, parameters, callback){
 
 		query.emit('data', row);
 
-		if (query._resultSet instanceof Array) {
+		if (query._resultSet && query._resultSet.rows instanceof Array) {
 			query._resultSet.rows.push(row);
 		}
 	});
@@ -364,11 +433,11 @@ var execQuery = function(query, parameters, callback){
 };
 
 /**
- *	Inject Queryable API into object.
+ * Inject Queryable API into object.
  *
- *	@private
- *	@param {Object}	target
- *	@return {any-db~Queryable} target object with Queryable API injected.
+ * @private
+ * @param {Object}	target
+ * @return {any-db~Queryable} target object with Queryable API injected.
  */
 var makeQueryable = function(target) {
 	target.adapter = exports;
@@ -378,18 +447,43 @@ var makeQueryable = function(target) {
 };
 
 /**
- *	Adapter's schema name.
+ * Adapter's schema name.
  */
 
 exports.name = 'mssql';
 
 /**
- *	Implementation of `Adapter.createConnection` method defined by any db API.
+ * Extend any db API with namedParameterPrefix flag, that can be used when build SQL query strings
+ * with named parameters, for example:
  *
- *	@see {@link https://github.com/grncdr/node-any-db-adapter-spec#adaptercreateconnection}
- *	@param {any-db~Config} config
- *	@param {genericCallback} [callback]
- *	@return {any-db~Connection}
+ * ```
+ * connection.query(
+ *   'SELECT '+adapter.namedParameterPrefix+'myParam AS test`,
+ *   { myParam: 1 }
+ * );
+ * ```
+ */
+exports.namedParameterPrefix = '@';
+
+/**
+ * Extend any db API with positionalParameterPrefix flag, that can be used when build SQL query strings
+ * with positioned parameters, for example:
+ *
+ * ```
+ * connection.query(
+ *   'SELECT '+adapter.positionalParameterPrefix+' AS test`,
+ *   [ 1 ]
+ * );
+ * ``` */
+exports.positionalParameterPrefix = '?';
+
+/**
+ * Implementation of `Adapter.createConnection` method defined by any db API.
+ *
+ * @see {@link https://github.com/grncdr/node-any-db-adapter-spec#adaptercreateconnection}
+ * @param {any-db~Config} config
+ * @param {genericCallback} [callback]
+ * @return {any-db~Connection}
  */
 exports.createConnection = function(config, callback){
 	var result = new sql.Connection(config);
@@ -430,16 +524,16 @@ exports.createConnection = function(config, callback){
 };
 
 /**
- *	Partial implementation of `Adapter.createQuery` method defined by any db API.
+ * Partial implementation of `Adapter.createQuery` method defined by any db API.
  *
- *	Partial because returned Query DOES NOT inherit Readable stream.
- *	It inherits EventEmitter only, because Tedious library does not provide Readable
- *	stream, and faking it does not make much sense.
+ * Partial because returned Query DOES NOT inherit Readable stream.
+ * It inherits EventEmitter only, because Tedious library does not provide Readable
+ * stream, and faking it does not make much sense.
  *
- *	@see {@link https://github.com/grncdr/node-any-db-adapter-spec#adaptercreatequery}
- *	@param {string|any-db~Query} query
- *	@param {Array} [parameters] - used only when query is a string.
- *	@param {genericCallback} [callback] - used only when query is a string.
+ * @see {@link https://github.com/grncdr/node-any-db-adapter-spec#adaptercreatequery}
+ * @param {string|any-db~Query} query
+ * @param {Array} [parameters] - used only when query is a string.
+ * @param {genericCallback} [callback] - used only when query is a string.
  */
 exports.createQuery = function(query, parameters, callback){
 	if (typeof query === 'object') {
@@ -457,35 +551,6 @@ exports.createQuery = function(query, parameters, callback){
 	result._request = null;
 	result._resultSet = null;
 	result._isDone = false;
-
-	if (parameters) {
-		result.text = exports.prepareParameters(result.text, parameters);
-	}
-
-	result._request = new sql.Request(result.text, function(err, rowCount) {
-		result._isDone = true;
-		result._resultSet.rowCount = rowCount;
-
-		if (result._connection) {
-			result._connection.close();
-			result._connection = null;
-		}
-
-		if (result._request) {
-			delete result._request;
-			result._request = null;
-		}
-
-		if (err) {
-			result.emit('error', err);
-		}
-		else if (result.callback && result._resultSet) {
-			result.callback(err, result._resultSet);
-		}
-
-		result.emit('close');
-		result.emit('end');
-	});
 
 	return result;
 };
