@@ -12,7 +12,7 @@ those specified by Any-DB [Connection][3] are also available to you.
 
 Keep in mind that these methods will *not* necessarily work with other backends.
 
-Module extends any DB API by providing support for both positional and named parameters.
+Module extends Any-DB API by providing support for both positional and named parameters.
 Positional parameters are actually emulated (they're converted to named parameters)
 because Tedious does not support them.
 
