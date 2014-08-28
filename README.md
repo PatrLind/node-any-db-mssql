@@ -18,30 +18,30 @@ because Tedious does not support them.
 
 Module provides additional variables:
 
-- namedParameterPrefix
-- positionalParameterPrefix
+- `namedParameterPrefix`
+- `positionalParameterPrefix`
 
 which can be used when building SQL queries.
 
 Additionally parameter values can be objects with two properties:
 
-- type
-- value
+- `type`
+- `value`
 
 Where type is a Tedious type object, which can be obtained through `getType('typeName')` function,
 also provided by this module. aside from "native" types used by
 Tedious and MSSQL, following "generic" types are recognized:
 
-- integer
-- float
-- real
-- boolean
-- text
-- string
-- date
-- time
-- datetime
-- binary
+- `integer`
+- `float`
+- `real`
+- `boolean`
+- `text`
+- `string`
+- `date`
+- `time`
+- `datetime`
+- `binary`
 
 Unrecognized types will be handled as binary.
 
