@@ -445,7 +445,7 @@ var execQuery = function(query, parameters, callback) {
 			fields: [],
 			rows: [],
 			rowCount: 0,
-			lastInsertId: null,
+			lastInsertId: null, // Not supported
 			// Output parameter values
 			values: []
 		};

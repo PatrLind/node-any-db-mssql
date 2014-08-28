@@ -46,8 +46,8 @@ describe('Connection', function(){
 		var query = connection.query('SELECT 1 AS test');
 
 		query.on('data', function(row){
-			assert.ok(row);
-			assert.ok(row.test);
+			assert.ok(row, 'Row is empty');
+			assert.ok(row.test, 'test is missing from row');
 			assert.strictEqual(row.test, 1);
 			emittedData = true;
 		});
