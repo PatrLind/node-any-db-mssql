@@ -66,7 +66,7 @@ environment variables:
 Every one of the environment variables mentioned above is optional,
 test will use defaults if value will not ve provided.
 
-See test configuration file (test/support/config.js) for more information.
+See test [configuration](test/support/config.js) file for more information.
 
 ## Generating JSDoc
 
