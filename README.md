@@ -6,7 +6,7 @@ database driver to create connection and query objects that conform to the
 
 ## API extensions
 
-The connections this package creates inherit from the constructor
+The connections this module creates inherit from the constructor
 functions in `require('tedious')`, so any methods that `tedious` supports beyond
 those [specified by Any-DB][Connection] are also available to you.
 
