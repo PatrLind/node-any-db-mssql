@@ -12,8 +12,8 @@ var sql = require('tedious');
  *
  * @external Tedious~ConfigOptions
  * @see {@link http://pekim.github.io/tedious/api-connection.html#function_newConnection}
- * @property {String} [instanceName] - e.g., 'SQLEXPRESS'.
- * @property {String} [database] - database name, e.g., 'MyDataBase'.
+ * @property {String} [instanceName] - e.g., 'SQLEXPRESS'
+ * @property {String} [database] - database name, e.g., 'MyDataBase'
  * @property {Number} [port] - server port, e.g., 1433.
  */
 
@@ -22,8 +22,8 @@ var sql = require('tedious');
  *
  * @external Tedious~Config
  * @see {@link http://pekim.github.io/tedious/api-connection.html#function_newConnection}
- * @property {String} server - address, e.g., '10.48.0.1'.
- * @property {String} userName - user name, e.g., 'MyUserName'.
+ * @property {String} server - address, e.g., '10.48.0.1'
+ * @property {String} userName - user name, e.g., 'MyUserName'
  * @property {String} password
  * @property {Tedious~ConfigOptions} [options]
  */
@@ -293,7 +293,7 @@ var setRequestParameters = function(request, parameters) {
  * Second and any next argument are optional and depend on the calling function.
  *
  * @typedef {Function} genericCallback
- * @param {string|Object|null} error - error, if any happened, or null.
+ * @param {string|Object|null} error - error, if any happened, or null
  * @param {Array|Number|string|null} result
  */
 
@@ -359,8 +359,8 @@ var setRequestParameters = function(request, parameters) {
  *
  * @private
  * @param {string|any-db~Query} query
- * @param {Array|Object} [parameters] - used only when query is a string.
- * @param {genericCallback} [callback] - used only when query is a string.
+ * @param {Array|Object} [parameters] - used only when query is a string
+ * @param {genericCallback} [callback] - used only when query is a string
  */
 var execQuery = function(query, parameters, callback) {
 	query = this.adapter.createQuery(query, parameters, callback);
@@ -573,8 +573,8 @@ exports.createConnection = function(config, callback) {
  *
  * @see {@link https://github.com/grncdr/node-any-db-adapter-spec#adaptercreatequery}
  * @param {string|any-db~Query} query
- * @param {Array} [parameters] - used only when query is a string.
- * @param {genericCallback} [callback] - used only when query is a string.
+ * @param {Array} [parameters] - used only when query is a string
+ * @param {genericCallback} [callback] - used only when query is a string
  * @return {any-db~Query} query
  */
 exports.createQuery = function(query, parameters, callback) {
