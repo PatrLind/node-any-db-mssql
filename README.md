@@ -32,7 +32,7 @@ Additionally parameter values can be objects with two properties:
 Where type is a Tedious type object, which can be obtained through call to
 `getType('typeName')` function, also provided by this module.
 Aside from "native" types used by Tedious and MSSQL, following "generic"
-types are recognized:
+types are recognized (following example set by [Sails][4]):
 
 - `integer`
 - `float`
@@ -70,7 +70,7 @@ See test [configuration](test/support/config.js) file for more information.
 
 ## Generating JSDoc
 
-Generate documentation using [JSDoc][4]:
+Generate documentation using [JSDoc][5]:
 
     jsdoc -c jsdoc.conf.json -d documentation index.js
 
@@ -81,4 +81,5 @@ BSD3
 [1]: http://pekim.github.io/tedious/
 [2]: https://github.com/grncdr/node-any-db-adapter-spec
 [3]: https://github.com/grncdr/node-any-db-adapter-spec#connection
-[4]: http://usejsdoc.org/
+[4]: http://sailsjs.org/#/documentation/concepts/ORM/Attributes.html?q=attribute-options
+[5]: http://usejsdoc.org/
