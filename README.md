@@ -29,8 +29,8 @@ Additionally parameter values can be objects with two properties:
 - value
 
 Where type is a Tedious type object, which can be obtained through `getType('typeName')` function,
-also provided by this module. Following "generic" types (aside from "native" types used by
-Tedious and MSSQL) are recognized:
+also provided by this module. aside from "native" types used by
+Tedious and MSSQL, following "generic" types are recognized:
 
 - integer
 - float
