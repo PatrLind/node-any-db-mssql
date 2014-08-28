@@ -7,14 +7,15 @@ database driver to create connection and query objects that conform to the
 ## API extensions
 
 The connections this module creates inherit from the constructor
-functions in `require('tedious')`, so any methods that `tedious` supports beyond
-those specified by Any-DB [Connection][3] are also available to you.
+functions in `require('tedious')`, so any methods that `tedious` supports
+beyond those specified by Any-DB [Connection][3] are also available to you.
 
-Keep in mind that these methods will *not* necessarily work with other backends.
+Keep in mind that these methods will *not* necessarily work with
+other backends.
 
-Module extends Any-DB API by providing support for both positional and named parameters.
-Positional parameters are actually emulated (they're converted to named parameters)
-because Tedious does not support them.
+Module extends Any-DB API by providing support for both positional and
+named parameters. Positional parameters are actually emulated (they're
+converted to named parameters) because Tedious does not support them.
 
 Module provides additional variables:
 
@@ -28,9 +29,10 @@ Additionally parameter values can be objects with two properties:
 - `type`
 - `value`
 
-Where type is a Tedious type object, which can be obtained through `getType('typeName')` function,
-also provided by this module. aside from "native" types used by
-Tedious and MSSQL, following "generic" types are recognized:
+Where type is a Tedious type object, which can be obtained through call to
+`getType('typeName')` function, also provided by this module.
+Aside from "native" types used by Tedious and MSSQL, following "generic"
+types are recognized:
 
 - `integer`
 - `float`
@@ -51,11 +53,20 @@ Unrecognized types will be handled as binary.
 
 ## Running tests
 
-Run tests the node way, with database connection passed through environment variables:
+Run tests the node way, with database connection passed through
+environment variables:
 
-    export DB_NAME=test && export DB_USER=sa && export DB_PASS=test123 && export DB_INST=SQLEXPRESS && export DB_HOST=localhost && npm install && npm test
+    export DB_NAME=test
+    export DB_USER=sa
+    export DB_PASS=test123
+    export DB_INST=SQLEXPRESS
+    export DB_HOST=localhost
+    npm install && npm test
 
-Every one of the environment variables mentioned above is optional, if it will not be set, test will use defaults. See test/support/config.js for more information.
+Every one of the environment variables mentioned above is optional,
+test will use defaults if value will not ve provided.
+
+See test [configuration](test/support/config.js) file for more information.
 
 ## Generating JSDoc
 
