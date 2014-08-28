@@ -2,7 +2,8 @@ var EventEmitter = require('events').EventEmitter;
 var sql = require('tedious');
 
 /**
- * Implementation of Adapter as defined by any db API.
+ * Implementation of Adapter as defined by any db API ({@link https://github.com/grncdr/node-any-db}).
+ *
  * @module any-db-mssql
  */
 
@@ -58,7 +59,7 @@ var defaultConfig = {
  * @param {any-db~Config} anyConfig
  * @return {Tedious~Config}
  */
-var parseConfig = function(anyConfig){
+var parseConfig = function(anyConfig) {
 	var result = {};
 
 	result.userName         = anyConfig.user || defaultConfig.userName;
@@ -82,6 +83,26 @@ var parseConfig = function(anyConfig){
  * Each key is a parameter name, and each value is that value.
  * Data types will be detected automatically.
  *
+ * Example:
+ * ```
+ * {
+ *   first: 1,
+ *   second: 'two',
+ *   third: true
+ * }
+ * ```
+ *
+ * You can enforce types by setting values to object with `type` and `value` properties, e.g.,
+ * ```
+ * {
+ *   first: 1,
+ *   second: {
+ *     type: adapter.getType('string'),
+ *     value: 'two'
+ *   }
+ * }
+ * ```
+ *
  * @typedef {Object} namedParameters
  */
 
@@ -89,9 +110,11 @@ var parseConfig = function(anyConfig){
  * Contains values of parameters. Each index corresponds to the parameter identifier in SQL query string.
  * Data types will be detected automatically.
  *
+ * Every value in positionalParameters Array can be either simple value, or object containing type and
+ * value (to enforce data type). It works same way as with namedParameters ({@link module:any-db-mssql~namedParameters more information}).
+ *
  * @typedef {Array} positionalParameters
  */
-
 
 /**
  * Look through the parameters and "unroll" the ones with Array value, e.g.,
@@ -113,10 +136,10 @@ var parseConfig = function(anyConfig){
  *
  * This function mutates `query.text` and `query.values`.
  *
- * @param {Query} query
- * @return {Query} modified query
+ * @param {any-db~Query} query
+ * @return {any-db~Query} modified query
  */
-exports.prepareQueryParameters = function(query){
+exports.prepareQueryParameters = function(query) {
 	if (!query.values) {
 		return query;
 	}
@@ -170,17 +193,29 @@ exports.prepareQueryParameters = function(query){
 };
 
 /**
+ * RegExp used by `detectParameterType()`.
+ *
  * @private
  */
 var _typeCheck = /(^\d+$)|(^\d+\.\d+$)|(^[\w\W]+$)/;
+
+/**
+ * Tedious type definition.
+ * @external Tedious~Type
+ * @see {@link http://pekim.github.io/tedious/api-datatypes.html}
+ * @property {number} id - internal identification number
+ * @property {string} type - internal type name
+ * @property {string} name - SQL type name
+ */
+
 /**
  * Check the type of the parameter value and return MSSQL type most suitable for it.
  * Defaults to VarBinary type.
  *
  * @param {*} value
- * @returns {Object} MSSQL/Tedious database type.
+ * @return {Tedious~Type} Tedious type definition
  */
-exports.detectParameterType = function(value){
+exports.detectParameterType = function(value) {
 	if (value === null) {
 		return sql.TYPES.Null;
 	}
@@ -189,6 +224,9 @@ exports.detectParameterType = function(value){
 	}
 	else if (value instanceof Array) {
 		return (value.length > 0 ? exports.detectParameterType(value[0]) : sql.TYPES.Null);
+	}
+	else if (value instanceof Date) {
+		return sql.TYPES.DateTimeOffset;
 	}
 
 	var typeCheckResult = _typeCheck.exec(value);
@@ -222,7 +260,7 @@ exports.detectParameterType = function(value){
  * @param {Tedious~Request} request
  * @param {namedParameters|positionalParameters} [parameters]
  */
-var setRequestParameters = function(request, parameters){
+var setRequestParameters = function(request, parameters) {
 	if (!parameters) {
 		return;
 	}
@@ -249,17 +287,20 @@ var setRequestParameters = function(request, parameters){
 };
 
 /**
- *  Generic callback.
+ * Generic callback function.
  *
- *  @typedef {Function} genericCallback
- *  @param {String|Object|null} error - error, if any happened or null.
- *  @param {Array|Number|string|null} result
+ * First argument will allways be error value or empty.
+ * Second and any next argument are optional and depend on the calling function.
+ *
+ * @typedef {Function} genericCallback
+ * @param {string|Object|null} error - error, if any happened, or null.
+ * @param {Array|Number|string|null} result
  */
 
 /**
  * EventEmitter is part of node.js API.
  *
- * @external EventEmitter
+ * @external events~EventEmitter
  * @see {@link http://nodejs.org/api/events.html#events_class_events_eventemitter}
  */
 
@@ -321,7 +362,7 @@ var setRequestParameters = function(request, parameters){
  * @param {Array|Object} [parameters] - used only when query is a string.
  * @param {genericCallback} [callback] - used only when query is a string.
  */
-var execQuery = function(query, parameters, callback){
+var execQuery = function(query, parameters, callback) {
 	query = this.adapter.createQuery(query, parameters, callback);
 
 	if (query.values) {
@@ -436,8 +477,8 @@ var execQuery = function(query, parameters, callback){
  * Inject Queryable API into object.
  *
  * @private
- * @param {Object}	target
- * @return {any-db~Queryable} target object with Queryable API injected.
+ * @param {Object} target
+ * @return {any-db~Queryable} target object with Queryable API injected
  */
 var makeQueryable = function(target) {
 	target.adapter = exports;
@@ -483,9 +524,9 @@ exports.positionalParameterPrefix = '?';
  * @see {@link https://github.com/grncdr/node-any-db-adapter-spec#adaptercreateconnection}
  * @param {any-db~Config} config
  * @param {genericCallback} [callback]
- * @return {any-db~Connection}
+ * @return {any-db~Connection} connection
  */
-exports.createConnection = function(config, callback){
+exports.createConnection = function(config, callback) {
 	var result = new sql.Connection(config);
 
 	// Tedious emits `end`, but any-db expects `close` event,
@@ -534,8 +575,9 @@ exports.createConnection = function(config, callback){
  * @param {string|any-db~Query} query
  * @param {Array} [parameters] - used only when query is a string.
  * @param {genericCallback} [callback] - used only when query is a string.
+ * @return {any-db~Query} query
  */
-exports.createQuery = function(query, parameters, callback){
+exports.createQuery = function(query, parameters, callback) {
 	if (typeof query === 'object') {
 		return query;
 	}
@@ -553,4 +595,65 @@ exports.createQuery = function(query, parameters, callback){
 	result._isDone = false;
 
 	return result;
+};
+
+/**
+ * Extend any db API by providing function that returns Tedious type for given generic type name.
+ *
+ * Following type names are supported (aside from "native" type names supported by Tedious):
+ *
+ * - integer
+ * - float
+ * - real
+ * - boolean
+ * - text
+ * - string
+ * - date
+ * - time
+ * - datetime
+ * - binary
+ *
+ * Unrecognized types will be handled as binary.
+ *
+ * @param {string} typeName
+ * @return {Tedious~Type} Tedious type definition object
+ */
+exports.getType = function(typeName) {
+	if (sql.typeByName.hasOwnProperty(typeName)) {
+		return sql.typeByName[typeName];
+	}
+
+	switch (typeName) {
+		case 'int':
+		case 'integer':
+			return sql.TYPES.Int;
+
+		case 'float':
+		case 'real':
+			return sql.TYPES.Real;
+
+		case 'bool':
+		case 'boolean':
+		case 'bit':
+			return sql.TYPES.Bit;
+
+		case 'text':
+		case 'string':
+			return sql.TYPES.NVarChar;
+
+		case 'date':
+			return sql.TYPES.Date;
+
+		case 'datetime':
+			return sql.TYPES.DateTimeOffset;
+
+		case 'time':
+			return sql.TYPES.Time;
+
+		case 'binary':
+			return sql.TYPES.VarBinary;
+
+		default:
+			return sql.TYPES.VarBinary;
+	}
 };
