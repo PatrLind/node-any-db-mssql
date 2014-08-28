@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "The MSSQL adapter for any-db",
   "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Hypermediaisobar-admin/node-any-db-mssql.git"
