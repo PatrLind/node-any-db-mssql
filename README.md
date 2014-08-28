@@ -66,11 +66,11 @@ environment variables:
 Every one of the environment variables mentioned above is optional,
 test will use defaults if value will not ve provided.
 
-See test configuration file ([test/support/config.js][6]) for more information.
+See test configuration file ([test/support/config.js][5]) for more information.
 
 ## Generating JSDoc
 
-Generate documentation using [JSDoc][5]:
+Generate documentation using [JSDoc][6]:
 
     jsdoc -c jsdoc.conf.json -d documentation index.js
 
@@ -82,5 +82,5 @@ BSD3
 [2]: https://github.com/grncdr/node-any-db-adapter-spec
 [3]: https://github.com/grncdr/node-any-db-adapter-spec#connection
 [4]: http://sailsjs.org/#/documentation/concepts/ORM/Attributes.html?q=attribute-options
-[5]: http://usejsdoc.org/
-[6]: test/support/config.js
+[5]: test/support/config.js
+[6]: http://usejsdoc.org/
