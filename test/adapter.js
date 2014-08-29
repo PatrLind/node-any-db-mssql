@@ -21,13 +21,9 @@ describe('Adapter', function(){
 		assert.strictEqual(adapter.name, 'mssql');
 	});
 
-	it('should provide namedParameterPrefix property', function(){
-		assert.ok(adapter.namedParameterPrefix);
-		assert.strictEqual(adapter.namedParameterPrefix, '@');
-	});
-
-	it('should provide positionalParameterPrefix property', function(){
-		assert.ok(adapter.positionalParameterPrefix);
-		assert.strictEqual(adapter.positionalParameterPrefix, '?');
+	['integer','float','boolean','text','string','date','datetime','time','binary'].forEach(function(type){
+		it('should recognize generic data type', function(){
+			assert.ok(adapter.getType(type), '`'+type+'` was not recognized');
+		});
 	});
 });

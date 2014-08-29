@@ -624,8 +624,8 @@ exports.createQuery = function(query, parameters, callback) {
  * @return {Tedious~Type} Tedious type definition object
  */
 exports.getType = function(typeName) {
-	if (sql.typeByName.hasOwnProperty(typeName)) {
-		return sql.typeByName[typeName];
+	if (sql.TYPES.hasOwnProperty(typeName)) {
+		return sql.TYPES[typeName];
 	}
 
 	switch (typeName) {
