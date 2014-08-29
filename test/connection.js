@@ -38,14 +38,44 @@ describe('Connection', function(){
 		assert.ok(connection.query instanceof Function);
 	});
 
-	it('should emit `data`, `close` and `end` events', function(done){
+	it('should emit `error` event', function(done){
+		var query = connection.query('SELECT nonExistant AS test');
+
+		query.on('error', function(err){
+			assert.ok(err);
+			done();
+		});
+
+		assert.ok(query);
+	});
+
+	it('should call back only once when error happens', function(done){
+		var query = connection.query('SELECT nonExistant AS test', false, function(err){
+			assert.ok(err);
+			done();
+		});
+
+		assert.ok(query);
+	});
+
+	it('should emit `fields`, `data`, `close` and `end` events', function(done){
+		var emittedFields = false;
 		var emittedData = false;
 		var emittedClose = false;
 		var emittedEnd = false;
 
 		var query = connection.query('SELECT 1 AS test');
 
+		query.on('fields', function(fields){
+			assert.strictEqual(emittedData, false, '`fields` event should be emitted BEFORE `data` event');
+			assert.ok(fields.length, 'fields data should contain test item');
+			assert.ok(fields[0].name, 'fields item should contain `name` property');
+			assert.strictEqual(fields[0].name, 'test', 'field name is incorrect');
+			emittedFields = true;
+		});
+
 		query.on('data', function(row){
+			assert.strictEqual(emittedFields, true, '`data` event should be emitted AFTER `fields` event');
 			assert.ok(row, 'Row is empty');
 			assert.ok(row.test, 'test is missing from row');
 			assert.strictEqual(row.test, 1);
@@ -57,6 +87,7 @@ describe('Connection', function(){
 		});
 
 		query.on('end', function(){
+			assert.ok(emittedFields, 'Should emit `fields` event');
 			assert.ok(emittedData, 'Should emit `data` event');
 			assert.ok(emittedClose, 'Should emit `close` event');
 

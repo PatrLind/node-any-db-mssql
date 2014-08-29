@@ -386,10 +386,7 @@ var execQuery = function(query, parameters, callback) {
 			query._request = null;
 		}
 
-		if (err) {
-			query.emit('error', err);
-		}
-		else if (query.callback && query._resultSet) {
+		if (query.callback && !query._emittedError) {
 			query.callback(err, query._resultSet);
 		}
 
@@ -440,6 +437,15 @@ var execQuery = function(query, parameters, callback) {
 		}
 	});
 
+	query._request.on('error', function(err){
+		// According to Any-DB API, query error event can be emitted only once per query:
+		// https://github.com/grncdr/node-any-db-adapter-spec#error-event-1
+		if (!query._emittedError) {
+			query._emittedError = true;
+			query.emit('error', err);
+		}
+	});
+
 	if (query.callback && query.callback instanceof Function) {
 		query._resultSet = {
 			fields: [],
@@ -450,14 +456,6 @@ var execQuery = function(query, parameters, callback) {
 			values: []
 		};
 
-		// According to the documentation, callback has to be subscribed to the error event.
-		// see: https://github.com/grncdr/node-any-db-adapter-spec#error-event-1
-		query._request.on('error', function(err){
-			if (query.callback) {
-				query.callback(err);
-			}
-		});
-
 		// We collect parameters only when _resultSet is being used.
 		query._request.on('returnValue', function(parameterName, value, metadata){
 			query._resultSet.values.push({
@@ -466,6 +464,10 @@ var execQuery = function(query, parameters, callback) {
 				meta: metadata
 			});
 		});
+
+		// According to Any-DB API, callback should be subscribed to the error event:
+		// https://github.com/grncdr/node-any-db-adapter-spec#error-event-1
+		query.on('error', query.callback);
 	}
 
 	this.execSql(query._request);
@@ -546,7 +548,9 @@ exports.createConnection = function(config, callback) {
 	});
 
 	result.on('errorMessage', function(err){
-		result.emit('error', err);
+		if (this.request) {
+			this.request.emit('error', err);
+		}
 	});
 
 	// Tedious Connection has `close()` method, but any db
@@ -593,6 +597,7 @@ exports.createQuery = function(query, parameters, callback) {
 	result._request = null;
 	result._resultSet = null;
 	result._isDone = false;
+	result._emittedError = false;
 
 	return result;
 };
