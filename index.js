@@ -92,16 +92,21 @@ var parseConfig = function(anyConfig) {
  * }
  * ```
  *
- * You can enforce types by setting values to object with `type` and `value` properties, e.g.,
+ * You can enforce types by setting values to objects with `type`, `value` and
+ * (optionally) `options` properties, e.g.,
  * ```
  * {
  *   first: 1,
  *   second: {
  *     type: adapter.getType('string'),
- *     value: 'two'
+ *     value: 'two',
+ *     options: {
+ *       length: 3
+ *     }
  *   }
  * }
  * ```
+ * For more information about type options, see: {@link http://pekim.github.io/tedious/api-request.html#function_addParameter}.
  *
  * @typedef {Object} namedParameters
  */
@@ -291,10 +296,15 @@ var setRequestParameters = function(request, parameters) {
 	var keys = Object.keys(parameters);
 	var type = false;
 	var value = null;
+	var options = null;
 	for (var i = keys.length - 1; i >= 0; i--) {
 		value = parameters[keys[i]];
+		options = null;
 
 		if (value instanceof Object && value.type && value.hasOwnProperty('value')) {
+			if (value.hasOwnProperty('options')) {
+				options = value.options;
+			}
 			type = value.type;
 			value = value.value;
 		}
@@ -303,7 +313,7 @@ var setRequestParameters = function(request, parameters) {
 		}
 
 		if (!(value instanceof Array)) {
-			request.addParameter(keys[i], type, value);
+			request.addParameter(keys[i], type, value, options);
 			continue;
 		}
 	}
