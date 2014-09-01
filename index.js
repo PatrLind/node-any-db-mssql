@@ -503,7 +503,12 @@ var execQuery = function(query, parameters, callback) {
 		query.on('error', query.callback);
 	}
 
-	this.execSql(query._request);
+	this.emit('query', query);
+
+	var self = this;
+	process.nextTick(function(){
+		self.execSql(query._request);
+	});
 
 	return query;
 };
@@ -564,6 +569,18 @@ exports.positionalParameterPrefix = '?';
 exports.createConnection = function(config, callback) {
 	var result = new sql.Connection(config);
 
+	if (callback && callback instanceof Function) {
+		callback._done = false;
+		result.once('error', function(err){
+			if (callback._done) {
+				return;
+			}
+
+			callback._done = true;
+			callback(err);
+		});
+	}
+
 	// Tedious emits `end`, but any-db expects `close` event,
 	// so we have to fake it.
 	result.on('end', function(){
@@ -571,8 +588,9 @@ exports.createConnection = function(config, callback) {
 	});
 
 	result.on('connect', function(err){
-		if (callback instanceof Function) {
-			callback(err, result);
+		if (callback && callback instanceof Function && !callback._done) {
+			callback._done = true;
+			callback(err);
 		}
 
 		if (err) {

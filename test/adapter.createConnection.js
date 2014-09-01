@@ -22,6 +22,39 @@ describe('Adapter', function(){
 	});
 
 	describe('Connection', function(){
+
+		this.timeout(5000);
+
+		it('should emit `error` event without callback set', function(done){
+			var connection = adapter.createConnection({});
+
+			connection.on('error', function(){
+				done();
+			});
+		});
+
+		it('should call back for `error` event', function(done){
+			var connection = adapter.createConnection({}, function(err){
+				assert.ok(err ? true : false);
+				done();
+			});
+		});
+
+		it('should emit `error` event when callback is set', function(done){
+			var emittedError = false;
+
+			var connection = adapter.createConnection({}, function(err){
+				assert.strictEqual(emittedError, false, 'Callback should be first `error` listener');
+				emittedError = true;
+				done();
+			});
+
+			connection.on('error', function(err){
+				assert.strictEqual(emittedError, true, '`error` event listeners should be called AFTER callback (if it was provided)');
+				emittedError = true;
+			});
+		});
+
 		it('should emit `close` event', function(done){
 			var connection = adapter.createConnection(config, function(err){
 				assert.ifError(err);
@@ -30,6 +63,5 @@ describe('Adapter', function(){
 
 			connection.on('close', done);
 		});
-
 	});
 });

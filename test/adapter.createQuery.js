@@ -20,9 +20,10 @@ describe('Adapter', function(){
 
 	describe('Query', function(){
 		var query = false;
+		var callback = function(){};
 
 		before(function(){
-			query = adapter.createQuery('SELECT @test AS test', [1], function(){});
+			query = adapter.createQuery('SELECT @test AS test', [1], callback);
 		});
 
 		after(function(){
@@ -42,7 +43,11 @@ describe('Adapter', function(){
 			assert.ok(query.callback instanceof Function);
 		});
 
-		it('should be instance of EventEmitter', function(){
+		it('should have `callback` property pointing to the callback function passed when creating Query', function(){
+			assert.strictEqual(query.callback, callback);
+		});
+
+		it('should be an instance of EventEmitter', function(){
 			assert.ok(query instanceof EventEmitter);
 		});
 	});
