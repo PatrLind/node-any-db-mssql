@@ -11,8 +11,10 @@ describe('Connection', function(){
 
 	var namedTarget = {
 		test: 1,
+		test1: 1.5,
 		test2: 'two',
-		test3: true
+		test3: true,
+		test4: new Date()
 	};
 
 	var positionalTarget = [];
@@ -127,7 +129,12 @@ describe('Connection', function(){
 
 			var r = result.rows[0];
 			Object.keys(r).forEach(function(k){
-				assert.strictEqual(r[k], namedTarget[k]);
+				if (namedTarget[k] instanceof Date && r[k] instanceof Date) {
+					assert.strictEqual(""+r[k], ""+namedTarget[k], k+' differs');
+				}
+				else {
+					assert.strictEqual(r[k], namedTarget[k], k+' differs');
+				}
 			});
 
 			done();
@@ -151,7 +158,12 @@ describe('Connection', function(){
 
 			var r = result.rows[0];
 			Object.keys(r).forEach(function(k){
-				assert.strictEqual(r[k], namedTarget[k]);
+				if (namedTarget[k] instanceof Date && r[k] instanceof Date) {
+					assert.strictEqual(""+r[k], ""+namedTarget[k], k+' differs');
+				}
+				else {
+					assert.strictEqual(r[k], namedTarget[k], k+' differs');
+				}
 			});
 
 			done();
@@ -178,7 +190,12 @@ describe('Connection', function(){
 
 			var r = result.rows[0];
 			Object.keys(r).forEach(function(k){
-				assert.strictEqual(r[k], target[k]);
+				if (target[k] instanceof Date && r[k] instanceof Date) {
+					assert.strictEqual(""+r[k], ""+target[k], k+' differs');
+				}
+				else {
+					assert.strictEqual(r[k], target[k], k+' differs');
+				}
 			});
 
 			done();
@@ -204,7 +221,12 @@ describe('Connection', function(){
 
 			var r = result.rows[0];
 			Object.keys(r).forEach(function(k){
-				assert.strictEqual(r[k], target[k]);
+				if (target[k] instanceof Date && r[k] instanceof Date) {
+					assert.strictEqual(""+r[k], ""+target[k], k+' differs');
+				}
+				else {
+					assert.strictEqual(r[k], target[k], k+' differs');
+				}
 			});
 
 			done();
@@ -231,7 +253,12 @@ describe('Connection', function(){
 
 			var r = result.rows[0];
 			Object.keys(r).forEach(function(k){
-				assert.strictEqual(r[k], namedTarget[k]);
+				if (namedTarget[k] instanceof Date && r[k] instanceof Date) {
+					assert.strictEqual(""+r[k], ""+namedTarget[k], k+' differs');
+				}
+				else {
+					assert.strictEqual(r[k], namedTarget[k], k+' differs');
+				}
 			});
 
 			done();

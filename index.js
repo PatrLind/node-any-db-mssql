@@ -197,7 +197,44 @@ exports.prepareQueryParameters = function(query) {
  *
  * @private
  */
-var _typeCheck = /(^\d+$)|(^\d+\.\d+$)|(^[\w\W]+$)/;
+var _typeCheck = (function(){
+	var regexTypes = {
+		'(^-?\\d+$)': sql.TYPES.Int,
+		'(^-?\\d+\\.\\d+$)': sql.TYPES.Real,
+		'(^\\d{4}-\\d{2}-\\d{2}$)': sql.TYPES.Date,
+		'(^\\d{2}\\:\\d{2}(?:\\:\\d{2})?(?:\\+\\d{4})?$)': sql.TYPES.Time,
+		// MSSQL does not implement full ISO 8601 standard:
+		// when string contains letter "T", MSSQL rejects time value without seconds specified,
+		// it also rejects any time value that contains only hour value (omitting minutes and seconds),
+		// it also rejects formats without colons.
+		'(^\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}\\:\\d{2}(?:\\:\\d{2}(?:\\.\\d+)?)?$)': sql.TYPES.DateTime2,
+		'(^\\d{4}-\\d{2}-\\d{2}T\\d{2}\\:\\d{2}\\:\\d{2}(?:\\.\\d+)?$)': sql.TYPES.DateTime2,
+		'(^\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}\\:\\d{2}(?:\\:\\d{2}(?:\\.\\d+)?)?(?:[\\+\\-]\\d{2}\\:\\d{2}|Z)?$)': sql.TYPES.DateTimeOffset,
+		'(^\\d{4}-\\d{2}-\\d{2}T\\d{2}\\:\\d{2}\\:\\d{2}(?:\\.\\d+)?(?:[\\+\\-]\\d{2}\\:\\d{2}|Z)?$)': sql.TYPES.DateTimeOffset,
+		'(^[\\w\\W]+$)': sql.TYPES.NVarChar
+	};
+
+	var r = new RegExp(Object.keys(regexTypes).join('|'));
+	r._exec = r.exec;
+	r.exec = function(str){
+		var result = this._exec(str);
+		if (!result) {
+			return false;
+		}
+
+		for (var i = 1; i < result.length; i++) {
+			if (!result[i]) {
+				continue;
+			}
+
+			return regexTypes[(Object.keys(regexTypes))[i-1]];
+		}
+
+		return sql.TYPES.VarBinary;
+	};
+
+	return r;
+})();
 
 /**
  * Tedious type definition.
@@ -216,7 +253,7 @@ var _typeCheck = /(^\d+$)|(^\d+\.\d+$)|(^[\w\W]+$)/;
  * @return {Tedious~Type} Tedious type definition
  */
 exports.detectParameterType = function(value) {
-	if (value === null) {
+	if (value === null || typeof value === 'undefined') {
 		return sql.TYPES.Null;
 	}
 	else if ((value instanceof Boolean) || value === true || value === false) {
@@ -229,21 +266,7 @@ exports.detectParameterType = function(value) {
 		return sql.TYPES.DateTimeOffset;
 	}
 
-	var typeCheckResult = _typeCheck.exec(value);
-	if (!typeCheckResult) {
-		return sql.TYPES.VarBinary;
-	}
-	else if (typeCheckResult[1] !== undefined) {
-		return sql.TYPES.Int;
-	}
-	else if (typeCheckResult[2] !== undefined) {
-		return sql.TYPES.Real;
-	}
-	else if (typeCheckResult[3] !== undefined) {
-		return sql.TYPES.NVarChar;
-	}
-
-	return sql.TYPES.VarBinary;
+	return _typeCheck.exec(value) || sql.TYPES.VarBinary;
 };
 
 /**

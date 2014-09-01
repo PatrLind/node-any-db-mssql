@@ -20,10 +20,4 @@ describe('Adapter', function(){
 		assert.ok(adapter.name);
 		assert.strictEqual(adapter.name, 'mssql');
 	});
-
-	['integer','float','boolean','text','string','date','datetime','time','binary'].forEach(function(type){
-		it('should recognize generic data type', function(){
-			assert.ok(adapter.getType(type), '`'+type+'` was not recognized');
-		});
-	});
 });
