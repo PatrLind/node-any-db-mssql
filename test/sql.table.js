@@ -6,9 +6,7 @@ var config = require('./support/config.js');
 
 describe('SQL', function(){
 
-	this.timeout(3000);
-    var connection = false;
-    var tableName = 'test_'+Date.now();
+	var connection = false;
 
 	before(function(done){
 		connection = adapter.createConnection(config, function(err){
@@ -30,29 +28,49 @@ describe('SQL', function(){
 		}
 	});
 
-	it('should be able to create table', function(done){
-		connection.once('error', function(err){
-			assert.ifError(err);
-		});
-		connection.query('CREATE TABLE '+tableName+' (a int)', false, function(err, result){
-			assert.ifError(err);
-			done();
-		}).on('error', function(err){
-			console.log(err);
-			done();
-		});
-	});
+	describe('TABLE', function(){
+		this.timeout(3000);
+		var tableName = 'test_'+Date.now();
 
-	it('should be able to drop table', function(done){
-		connection.once('error', function(err){
-			assert.ifError(err);
+		it('should be possible to create', function(done){
+			connection.once('error', function(err){
+				assert.ifError(err);
+			});
+			connection.query('CREATE TABLE '+tableName+' (a int)', false, function(err, result){
+				assert.ifError(err);
+				done();
+			}).on('error', function(err){
+				console.log(err);
+				done();
+			});
 		});
-		connection.query('DROP TABLE '+tableName, false, function(err, result){
-			assert.ifError(err);
-			done();
-		}).on('error', function(err){
-			console.log(err);
-			done();
+
+		it('should be possible to check for existance', function(done){
+			connection.once('error', function(err){
+				assert.ifError(err);
+			});
+			connection.query('SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = @tableName', {tableName: tableName}, function(err, result){
+				assert.ifError(err);
+				assert.strictEqual(result.rows.length, 1, 'Look like there is no table named '+tableName+' in the data base');
+				assert.strictEqual(result.rowCount, 1, 'rowCount and rows.length mismatch');
+				done();
+			}).on('error', function(err){
+				console.log(err);
+				done();
+			});
+		});
+
+		it('should be possible to drop', function(done){
+			connection.once('error', function(err){
+				assert.ifError(err);
+			});
+			connection.query('DROP TABLE '+tableName, false, function(err, result){
+				assert.ifError(err);
+				done();
+			}).on('error', function(err){
+				console.log(err);
+				done();
+			});
 		});
 	});
 });
