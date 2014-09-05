@@ -54,7 +54,7 @@ Unrecognized types will be handled as binary.
 ## Running tests
 
 Run tests the node way, with database connection passed through
-environment variables:
+environment variables like this:
 
     export DB_NAME=test
     export DB_USER=sa
