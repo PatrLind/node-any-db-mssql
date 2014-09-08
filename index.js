@@ -419,11 +419,12 @@ var execQuery = function(query, parameters, callback) {
 			query._request = null;
 		}
 
+		query.emit('close');
+
 		if (query.callback && !query._emittedError) {
 			query.callback(err, query._resultSet);
 		}
 
-		query.emit('close');
 		query.emit('end');
 	});
 
@@ -502,13 +503,13 @@ var execQuery = function(query, parameters, callback) {
 		// https://github.com/grncdr/node-any-db-adapter-spec#error-event-1
 		query.on('error', query.callback);
 	}
+	else {
+		// Add empty error handler, just in case there is none set up by the caller.
+		// This fixes Any-DB adapter spec tests.
+		query.on('error', function(){});
+	}
 
-	this.emit('query', query);
-
-	var self = this;
-	process.nextTick(function(){
-		self.execSql(query._request);
-	});
+	this.execNextInQueue(query);
 
 	return query;
 };
@@ -523,6 +524,38 @@ var execQuery = function(query, parameters, callback) {
 var makeQueryable = function(target) {
 	target.adapter = exports;
 	target.query = execQuery.bind(target);
+
+	// Tedious cannot execute more than one query at a time, so we have to
+	// implement a queue for queries, just in case someone tries to set
+	// multiple queries in a row (like node-any-db-adapter-spec tests do).
+	target._queue = [];
+	target._waitingForQueryToFinish = false;
+	var _execNextInQueue = function(){
+		if (target._waitingForQueryToFinish) {
+			return;
+		}
+
+		var query = target._queue.shift();
+
+		if (query) {
+			target._waitingForQueryToFinish = true;
+
+			query.once('end', function(){
+				target._waitingForQueryToFinish = false;
+				target.execNextInQueue();
+			});
+
+			target.emit('query', query);
+			target.execSql(query._request);
+		}
+	};
+	target.execNextInQueue = function(query){
+		if (query) {
+			target._queue.push(query);
+		}
+
+		process.nextTick(_execNextInQueue);
+	};
 
 	return target;
 };
@@ -597,6 +630,11 @@ exports.createConnection = function(config, callback) {
 
 		if (err) {
 			result.emit('error', err);
+		}
+		else {
+			// This is not mentioned in Any-DB documentation, but connection should
+			// emit `open` event when it is ready for queries.
+			result.emit('open');
 		}
 	});
 
