@@ -20,7 +20,7 @@
     "adapter"
   ],
   "author": "Marcin Konicki <ahwayakchih@gmail.com>",
-  "license": "MIT",
+  "license": "BSD-3-Clause",
   "dependencies": {
     "tedious": "^1.4.3"
   },

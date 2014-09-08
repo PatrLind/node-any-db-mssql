@@ -62,18 +62,18 @@ var defaultConfig = {
 var parseConfig = function(anyConfig) {
 	var result = {};
 
-	result.userName         = anyConfig.user || defaultConfig.userName;
+	result.userName         = anyConfig.user || anyConfig.userName || defaultConfig.userName;
 	result.password         = anyConfig.password || defaultConfig.password;
-	result.server           = anyConfig.host || defaultConfig.host;
-	result.options          = {};
-	result.options.database = anyConfig.database || defaultConfig.options.database;
+	result.server           = anyConfig.host || anyConfig.server || defaultConfig.host;
+	result.options          = anyConfig.options || {};
+	result.options.database = anyConfig.database || result.options.database || defaultConfig.options.database;
 
-	if (!anyConfig.instanceName) {
-		result.options.instanceName = anyConfig.instanceName;
+	if (anyConfig.instanceName || result.options.instanceName) {
+		result.options.instanceName = anyConfig.instanceName || result.options.instanceName;
 		result.options.port         = false;
 	}
 	else {
-		result.options.port         = anyConfig.port || defaultConfig.port;
+		result.options.port         = anyConfig.port || result.options.port || defaultConfig.options.port;
 	}
 
 	return result;
@@ -569,7 +569,7 @@ Object.defineProperty(exports, 'positionalParameterPrefix', { value: '?', writab
  * @return {any-db~Connection} connection
  */
 exports.createConnection = function(config, callback) {
-	var result = new sql.Connection(config);
+	var result = new sql.Connection(parseConfig(config));
 
 	if (callback && callback instanceof Function) {
 		callback._done = false;
@@ -579,7 +579,7 @@ exports.createConnection = function(config, callback) {
 			}
 
 			callback._done = true;
-			callback(err);
+			callback(err, result);
 		});
 	}
 
@@ -592,7 +592,7 @@ exports.createConnection = function(config, callback) {
 	result.on('connect', function(err){
 		if (callback && callback instanceof Function && !callback._done) {
 			callback._done = true;
-			callback(err);
+			callback(err, result);
 		}
 
 		if (err) {
@@ -643,8 +643,15 @@ exports.createQuery = function(query, parameters, callback) {
 	var result = new EventEmitter();
 
 	result.text = query;
-	result.values = parameters;
-	result.callback = callback;
+
+	if (parameters && parameters instanceof Function && !callback) {
+		result.values = false;
+		result.callback = parameters;
+	}
+	else {
+		result.values = parameters;
+		result.callback = callback;
+	}
 
 	result._connection = null;
 	result._request = null;
