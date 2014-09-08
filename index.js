@@ -98,7 +98,7 @@ var parseConfig = function(anyConfig) {
  * {
  *   first: 1,
  *   second: {
- *     type: adapter.getType('string'),
+ *     type: adapter.getTypeByName('string'),
  *     value: 'two',
  *     options: {
  *       length: 3
@@ -674,7 +674,7 @@ exports.createQuery = function(query, parameters, callback) {
  * @param {string} typeName
  * @return {Tedious~Type} Tedious type definition object
  */
-exports.getType = function(typeName) {
+exports.getTypeByName = function(typeName) {
 	if (sql.TYPES.hasOwnProperty(typeName)) {
 		return sql.TYPES[typeName];
 	}

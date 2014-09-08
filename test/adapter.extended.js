@@ -16,20 +16,20 @@ describe('Adapter', function(){
 		assert.strictEqual(adapter.positionalParameterPrefix, '?');
 	});
 
-	it('should provide `getType()` function', function(){
-		assert.ok(adapter.getType);
-		assert.strictEqual(adapter.getType instanceof Function, true);
+	it('should provide `getTypeByName()` function', function(){
+		assert.ok(adapter.getTypeByName);
+		assert.strictEqual(adapter.getTypeByName instanceof Function, true);
 	});
 
 	['integer','float','boolean','text','string','date','datetime','time','binary'].forEach(function(type){
 		it('should recognize generic data type', function(){
-			assert.ok(adapter.getType(type), '`'+type+'` was not recognized');
+			assert.ok(adapter.getTypeByName(type), '`'+type+'` was not recognized');
 		});
 	});
 
 	it('may provide `detectParameterType()` function', function(){
 		if (adapter.hasOwnProperty('detectParameterType')) {
-			assert.strictEqual(adapter.getType instanceof Function, true);
+			assert.strictEqual(adapter.detectParameterType instanceof Function, true);
 		}
 	});
 

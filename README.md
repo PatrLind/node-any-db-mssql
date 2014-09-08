@@ -19,18 +19,19 @@ converted to named parameters) because Tedious does not support them.
 
 Module provides additional variables:
 
-- `namedParameterPrefix`
-- `positionalParameterPrefix`
+- `namedParameterPrefix`, defaults to '@'
+- `positionalParameterPrefix`, defaults to '?'
 
-which can be used when building SQL queries.
+which can be used when building SQL queries. In most other data bases,
+named parameters are marked with colon prefix, but MSSQL uses at character.
 
-Additionally parameter values can be objects with two properties:
+Additionally parameter values can be objects, each with two properties:
 
 - `type`
 - `value`
 
-Where type is a Tedious type object, which can be obtained through call to
-`getType('typeName')` function, also provided by this module.
+Where type is a Tedious type object, which can be obtained through a call to
+`getTypeByName('typeName')` function, also provided by this module.
 Aside from "native" types used by Tedious and MSSQL, following "generic"
 types are recognized (following example set by [Sails][4]):
 
@@ -45,7 +46,12 @@ types are recognized (following example set by [Sails][4]):
 - `datetime`
 - `binary`
 
-Unrecognized types will be handled as binary.
+Unrecognized types will be handled as binary type.
+
+Tedious type can be obtained through a call to `detectParameterType(value)`
+function too. Difference is that `getTypeByName` "translates" type name to
+Tedious type, while `detectParameterType` returns Tedious type based on the
+JavaScript type of value passed to it.
 
 ## Install
 
