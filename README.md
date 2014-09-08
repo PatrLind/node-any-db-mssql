@@ -74,7 +74,7 @@ environment variables, for example:
     npm install && npm test
 
 Every one of the environment variables mentioned above is optional,
-test will use defaults if value will not ve provided.
+test will use defaults if value will not be provided.
 
 See test configuration file ([test/support/config.js][5]) for more information.
 
