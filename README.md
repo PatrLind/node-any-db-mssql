@@ -86,7 +86,7 @@ Generate documentation using [JSDoc][6]:
 
 ## License
 
-BSD3
+3-clause BSD
 
 [1]: http://pekim.github.io/tedious/
 [2]: https://github.com/grncdr/node-any-db-adapter-spec
