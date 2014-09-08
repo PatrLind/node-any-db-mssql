@@ -604,6 +604,18 @@ Object.defineProperty(exports, 'positionalParameterPrefix', { value: '?', writab
 exports.createConnection = function(config, callback) {
 	var result = new sql.Connection(parseConfig(config));
 
+	makeQueryable(result);
+
+	// Tedious Connection has `close()` method, but any db
+	// expects `end()` method, so we have to build a bridge.
+	result.end = function(callback){
+		if (callback instanceof Function) {
+			result.on('close', callback);
+		}
+
+		result.close();
+	};
+
 	if (callback && callback instanceof Function) {
 		callback._done = false;
 		result.once('error', function(err){
@@ -643,18 +655,6 @@ exports.createConnection = function(config, callback) {
 			this.request.emit('error', err);
 		}
 	});
-
-	// Tedious Connection has `close()` method, but any db
-	// expects `end()` method, so we have to build a bridge.
-	result.end = function(callback){
-		if (callback instanceof Function) {
-			result.on('close', callback);
-		}
-
-		result.close();
-	};
-
-	makeQueryable(result);
 
 	return result;
 };
