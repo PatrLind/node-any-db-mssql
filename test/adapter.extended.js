@@ -6,14 +6,18 @@ var adapter = require('../index.js');
 
 describe('Adapter', function(){
 
+	'use strict';
+
 	it('should provide namedParameterPrefix property', function(){
 		assert.ok(adapter.namedParameterPrefix);
 		assert.strictEqual(adapter.namedParameterPrefix, '@');
+		assert.throws(function(){ adapter.namedParameterPrefix = ':'; });
 	});
 
 	it('should provide positionalParameterPrefix property', function(){
 		assert.ok(adapter.positionalParameterPrefix);
 		assert.strictEqual(adapter.positionalParameterPrefix, '?');
+		assert.throws(function(){ adapter.positionalParameterPrefix = '!'; });
 	});
 
 	it('should provide `getTypeByName()` function', function(){

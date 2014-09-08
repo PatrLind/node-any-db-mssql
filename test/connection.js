@@ -7,6 +7,8 @@ var config = require('./support/config.js');
 
 describe('Connection', function(){
 
+	'use strict';
+
 	var connection = false;
 
 	var namedTarget = {

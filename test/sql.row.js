@@ -6,6 +6,8 @@ var config = require('./support/config.js');
 
 describe('SQL', function(){
 
+	'use strict';
+
 	var connection = false;
 
 	before(function(done){

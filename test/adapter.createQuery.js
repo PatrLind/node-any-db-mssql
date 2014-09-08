@@ -7,6 +7,8 @@ var config = require('./support/config.js');
 
 describe('Adapter', function(){
 
+	'use strict';
+
 	it('should provide createQuery() function', function(){
 		assert.ok(adapter.createQuery);
 		assert.ok(adapter.createQuery instanceof Function);

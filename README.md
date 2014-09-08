@@ -17,7 +17,7 @@ Module extends Any-DB API by providing support for both positional and
 named parameters. Positional parameters are actually emulated (they're
 converted to named parameters) because Tedious does not support them.
 
-Module provides additional variables:
+Module provides additional read-only variables:
 
 - `namedParameterPrefix`, defaults to '@'
 - `positionalParameterPrefix`, defaults to '?'

@@ -545,6 +545,7 @@ exports.name = 'mssql';
  * ```
  */
 exports.namedParameterPrefix = '@';
+Object.defineProperty(exports, 'namedParameterPrefix', { value: '@', writable : false });
 
 /**
  * Extend any db API with positionalParameterPrefix flag, that can be used when build SQL query strings
@@ -557,6 +558,7 @@ exports.namedParameterPrefix = '@';
  * );
  * ``` */
 exports.positionalParameterPrefix = '?';
+Object.defineProperty(exports, 'positionalParameterPrefix', { value: '?', writable : false });
 
 /**
  * Implementation of `Adapter.createConnection` method defined by any db API.

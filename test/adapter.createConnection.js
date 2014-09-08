@@ -6,6 +6,8 @@ var config = require('./support/config.js');
 
 describe('Adapter', function(){
 
+	'use strict';
+
 	it('should provide createConnection() function', function(){
 		assert.ok(adapter.createConnection);
 		assert.ok(adapter.createConnection instanceof Function);
