@@ -67,6 +67,23 @@ describe('SQL', function(){
 			connection.query('INSERT INTO '+tableName+' VALUES (@value)', {value: 42}, function(err, result){
 				assert.ifError(err);
 				assert.strictEqual(result.rowCount, 1, 'rowCount should be 1');
+				assert.strictEqual(result.rows.length, 0, 'rows.length should be 0');
+				done();
+			}).on('error', function(err){
+				console.log(err);
+				done();
+			});
+		});
+
+		it('should be possible to insert and get inserted data', function(done){
+			connection.once('error', function(err){
+				assert.ifError(err);
+			});
+			connection.query('INSERT INTO '+tableName+' OUTPUT INSERTED.a VALUES (@value)', {value: 23}, function(err, result){
+				assert.ifError(err);
+				assert.strictEqual(result.rowCount, 1, 'rowCount should be 1');
+				assert.strictEqual(result.rows.length, result.rowCount, 'rowCount and rows.length mismatch');
+				assert.strictEqual(result.rows[0].a, 23, 'Value from data base differs');
 				done();
 			}).on('error', function(err){
 				console.log(err);
@@ -108,7 +125,7 @@ describe('SQL', function(){
 			connection.once('error', function(err){
 				assert.ifError(err);
 			});
-			connection.query('SELECT * FROM '+tableName, false, function(err, result){
+			connection.query('SELECT * FROM '+tableName+' WHERE a = @value', {value: 42}, function(err, result){
 				assert.ifError(err);
 				assert.strictEqual(result.rows.length, 0, 'Look like there are still some rows in the data base');
 				assert.strictEqual(result.rowCount, result.rows.length, 'rowCount and rows.length mismatch');

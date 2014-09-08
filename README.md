@@ -4,6 +4,10 @@ This is the MSSQL adapter for Any-DB. It relies on the [Tedious][1]
 database driver to create connection and query objects that conform to the
 [Any-DB API][2].
 
+This adapter is not yet fully compatible with Any-DB, because Query objects
+are not instances of stream.Readable, they are just event emitters.
+It means that they do not provide `pause` and `resume` methods yet.
+
 ## API extensions
 
 The connections this module creates inherit from the constructor
