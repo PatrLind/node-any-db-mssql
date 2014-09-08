@@ -623,11 +623,6 @@ exports.createConnection = function(config, callback) {
 	});
 
 	result.on('connect', function(err){
-		if (callback && callback instanceof Function && !callback._done) {
-			callback._done = true;
-			callback(err, result);
-		}
-
 		if (err) {
 			result.emit('error', err);
 		}
@@ -635,6 +630,11 @@ exports.createConnection = function(config, callback) {
 			// This is not mentioned in Any-DB documentation, but connection should
 			// emit `open` event when it is ready for queries.
 			result.emit('open');
+		}
+
+		if (callback && callback instanceof Function && !callback._done) {
+			callback._done = true;
+			callback(err, result);
 		}
 	});
 
