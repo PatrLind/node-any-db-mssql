@@ -57,32 +57,47 @@ function too. Difference is that `getTypeByName` "translates" type name to
 Tedious type, while `detectParameterType` returns Tedious type based on the
 JavaScript type of value passed to it.
 
+
 ## Install
 
     npm install any-db-mssql
 
+
 ## Running tests
 
-Run tests the node way, with database connection passed through
-environment variables, for example:
+Before running tests, set some environment variables to configure access
+to the data base:
 
     export DB_NAME=test
     export DB_USER=sa
     export DB_PASS=test123
     export DB_INST=SQLEXPRESS
     export DB_HOST=localhost
-    npm install && npm test
 
 Every one of the environment variables mentioned above is optional,
 test will use defaults if value will not be provided.
 
+Run tests the node way, for example:
+
+    npm install && npm test
+
 See test configuration file ([test/support/config.js][5]) for more information.
+
+To test against checklist provided by any-db-adapter-spec, call it from
+any-db-mssql adapter's directory set as current directory, for example it can be
+called right after npm test mentioned above:
+
+    node ../node-any-db-adapter-spec/bin/test-any-db-adapter --url 'mssql://'$DB_USER':'$DB_PASS'@'$DB_HOST'/'$DB_NAME'?instanceName='$DB_INST
+
+Of course, if it's not executed after tests provided with this module,
+
 
 ## Generating JSDoc
 
 Generate documentation using [JSDoc][6]:
 
     jsdoc -c jsdoc.conf.json -d documentation index.js
+
 
 ## License
 

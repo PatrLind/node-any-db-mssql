@@ -22,7 +22,7 @@
   "author": "Marcin Konicki <ahwayakchih@gmail.com>",
   "license": "BSD-3-Clause",
   "dependencies": {
-    "tedious": "^1.4.3"
+    "tedious": "^1.5.1"
   },
   "peerDependencies": {
     "any-db": "~2.1.0"
