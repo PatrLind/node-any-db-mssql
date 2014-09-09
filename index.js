@@ -2,7 +2,7 @@ var EventEmitter = require('events').EventEmitter;
 var sql = require('tedious');
 
 /**
- * Implementation of Adapter as defined by any db API ({@link https://github.com/grncdr/node-any-db}).
+ * Implementation of Adapter as defined by Any-DB API ({@link https://github.com/grncdr/node-any-db}).
  *
  * @module any-db-mssql
  */
@@ -345,7 +345,7 @@ var setRequestParameters = function(request, parameters) {
  */
 
 /**
- * Adapter is defined by any db API.
+ * Adapter is defined by Any-DB API.
  *
  * @external any-db~Adapter
  * @see {@link https://github.com/grncdr/node-any-db-adapter-spec#adapter}
@@ -355,7 +355,7 @@ var setRequestParameters = function(request, parameters) {
  */
 
 /**
- * Queryable is defined by any db API.
+ * Queryable is defined by Any-DB API.
  *
  * @external any-db~Queryable
  * @see {@link https://github.com/grncdr/node-any-db-adapter-spec#queryable}
@@ -365,7 +365,7 @@ var setRequestParameters = function(request, parameters) {
  */
 
 /**
- * Query is defined by any db API.
+ * Query is defined by Any-DB API.
  *
  * @external any-db~Query
  * @see {@link https://github.com/grncdr/node-any-db-adapter-spec#query}
@@ -376,7 +376,7 @@ var setRequestParameters = function(request, parameters) {
  */
 
  /**
- * Connection is defined by any db API.
+ * Connection is defined by Any-DB API.
  *
  * @external any-db~Connection
  * @see {@link https://github.com/grncdr/node-any-db-adapter-spec#connection}
@@ -578,7 +578,7 @@ var makeQueryable = function(target) {
 exports.name = 'mssql';
 
 /**
- * Extend any db API with namedParameterPrefix flag, that can be used when build SQL query strings
+ * Extend Any-DB API with namedParameterPrefix flag, that can be used when build SQL query strings
  * with named parameters, for example:
  *
  * ```
@@ -592,7 +592,7 @@ exports.namedParameterPrefix = '@';
 Object.defineProperty(exports, 'namedParameterPrefix', { value: '@', writable : false });
 
 /**
- * Extend any db API with positionalParameterPrefix flag, that can be used when build SQL query strings
+ * Extend Any-DB API with positionalParameterPrefix flag, that can be used when build SQL query strings
  * with positioned parameters, for example:
  *
  * ```
@@ -605,7 +605,7 @@ exports.positionalParameterPrefix = '?';
 Object.defineProperty(exports, 'positionalParameterPrefix', { value: '?', writable : false });
 
 /**
- * Implementation of `Adapter.createConnection` method defined by any db API.
+ * Implementation of `Adapter.createConnection` method defined by Any-DB API.
  *
  * @see {@link https://github.com/grncdr/node-any-db-adapter-spec#adaptercreateconnection}
  * @param {any-db~Config} config
@@ -618,7 +618,7 @@ exports.createConnection = function(config, callback) {
 
 	makeQueryable(result);
 
-	// Tedious Connection has `close()` method, but any db
+	// Tedious Connection has `close()` method, but Any-DB
 	// expects `end()` method, so we have to build a bridge.
 	result.end = function(callback){
 		if (callback instanceof Function) {
@@ -685,7 +685,7 @@ exports.createConnection = function(config, callback) {
 };
 
 /**
- * Partial implementation of `Adapter.createQuery` method defined by any db API.
+ * Partial implementation of `Adapter.createQuery` method defined by Any-DB API.
  *
  * Partial because returned Query DOES NOT inherit Readable stream.
  * It inherits EventEmitter only, because Tedious library does not provide Readable
@@ -702,7 +702,7 @@ exports.createQuery = function(query, parameters, callback) {
 		return query;
 	}
 
-	// Tedious does not use Readable stream, so we cannot support any db fully :(.
+	// Tedious does not use Readable stream, so we cannot support Any-DB fully :(.
 	var result = new EventEmitter();
 
 	result.text = query;
@@ -726,7 +726,7 @@ exports.createQuery = function(query, parameters, callback) {
 };
 
 /**
- * Extend any db API by providing function that returns Tedious type for given generic type name.
+ * Extend Any-DB API by providing function that returns Tedious type for given generic type name.
  *
  * Following type names are supported (aside from "native" type names supported by Tedious):
  *
