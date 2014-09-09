@@ -425,7 +425,17 @@ var execQuery = function(query, parameters, callback) {
 			query.callback(err, query._resultSet);
 		}
 
-		query.emit('end');
+		// Do not emit `end` event if there was no one listening.
+		// TODO: this is strange requirement, but it comes from emulating stream.Readable,
+		// which does not emit `end` untill all data is consumed. If data was not consumed,
+		// i.e., no callback and no `data` event are used, there should be no `end`.
+		// This is most probably wrong way, because we're still closing the query
+		// (remember: Tedious query is not a stream waiting for read - it finishes anyway).
+		// We should change this once Tedious query is instance of `stream.Readable`, or
+		// can be paused and resumed.
+		if (query.callback || EventEmitter.listenerCount(query, 'data')) {
+			query.emit('end');
+		}
 	});
 
 	if (query.values) {
@@ -539,13 +549,13 @@ var makeQueryable = function(target) {
 
 		if (query) {
 			target._waitingForQueryToFinish = true;
+			target.emit('query', query);
 
-			query.once('end', function(){
+			query.once('close', function(){
 				target._waitingForQueryToFinish = false;
 				target.execNextInQueue();
 			});
 
-			target.emit('query', query);
 			target.execSql(query._request);
 		}
 	};
