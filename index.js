@@ -554,7 +554,9 @@ var makeQueryable = function(target) {
 			target._queue.push(query);
 		}
 
-		process.nextTick(_execNextInQueue);
+		if (target._isConnected) {
+			process.nextTick(_execNextInQueue);
+		}
 	};
 
 	return target;
@@ -563,7 +565,6 @@ var makeQueryable = function(target) {
 /**
  * Adapter's schema name.
  */
-
 exports.name = 'mssql';
 
 /**
@@ -603,6 +604,7 @@ Object.defineProperty(exports, 'positionalParameterPrefix', { value: '?', writab
  */
 exports.createConnection = function(config, callback) {
 	var result = new sql.Connection(parseConfig(config));
+	result._isConnected = false;
 
 	makeQueryable(result);
 
@@ -613,7 +615,15 @@ exports.createConnection = function(config, callback) {
 			result.on('close', callback);
 		}
 
-		result.close();
+		if (result._isConnected) {
+			result.close();
+		}
+		else {
+			// Work around Tedious bug (?) which throws error when connection is closed
+			// before finishing connecting.
+			// TODO: remove this if/when Tedious stops throwing error (https://github.com/pekim/tedious/issues/185)?
+			setImmediate(result.end);
+		}
 	};
 
 	if (callback && callback instanceof Function) {
@@ -631,7 +641,9 @@ exports.createConnection = function(config, callback) {
 	// Tedious emits `end`, but any-db expects `close` event,
 	// so we have to fake it.
 	result.on('end', function(){
+		result._isConnected = false;
 		result.emit('close');
+		result._queue = [];
 	});
 
 	result.on('connect', function(err){
@@ -639,6 +651,7 @@ exports.createConnection = function(config, callback) {
 			result.emit('error', err);
 		}
 		else {
+			result._isConnected = true;
 			// This is not mentioned in Any-DB documentation, but connection should
 			// emit `open` event when it is ready for queries.
 			result.emit('open');
@@ -648,6 +661,8 @@ exports.createConnection = function(config, callback) {
 			callback._done = true;
 			callback(err, result);
 		}
+
+		result.execNextInQueue();
 	});
 
 	result.on('errorMessage', function(err){
