@@ -69,7 +69,6 @@ describe('Adapter', function(){
 		it('should not throw exception when it is closed before connecting', function(done){
 			var connection = adapter.createConnection(config, function(err){
 				assert.ifError(err);
-				//connection.end();
 				done();
 			});
 
