@@ -4,7 +4,7 @@ var EventEmitter = require('events').EventEmitter;
 
 var adapter = require('../index.js');
 
-describe('Adapter', function(){
+describe('Adapter Extended', function(){
 
 	'use strict';
 
@@ -26,7 +26,7 @@ describe('Adapter', function(){
 	});
 
 	['integer','float','boolean','text','string','date','datetime','time','binary'].forEach(function(type){
-		it('should recognize generic data type', function(){
+		it('should recognize generic data type '+type, function(){
 			assert.ok(adapter.getTypeByName(type), '`'+type+'` was not recognized');
 		});
 	});
