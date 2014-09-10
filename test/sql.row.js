@@ -97,10 +97,33 @@ describe('SQL', function(){
 			});
 			connection.query('SELECT * FROM '+tableName+' WHERE a = @value', {value: 42}, function(err, result){
 				assert.ifError(err);
-				assert.strictEqual(result.rows.length, 1, 'Look like there is no row with value equal to 42 in the data base');
+				assert.strictEqual(result.rows.length, 1, 'Looks like there is no row with value equal to 42 in the data base');
 				assert.strictEqual(result.rowCount, result.rows.length, 'rowCount and rows.length mismatch');
 				assert.strictEqual(result.rows[0].a, 42, 'Value from data base differs');
 				done();
+			}).on('error', function(err){
+				console.log(err);
+				done();
+			});
+		});
+
+		it('should be possible to update', function(done){
+			connection.once('error', function(err){
+				assert.ifError(err);
+			});
+			connection.query('UPDATE '+tableName+' SET a = @newValue WHERE a = @oldValue', {oldValue: 23, newValue: 1234}, function(err, result){
+				assert.ifError(err);
+				assert.strictEqual(result.rowCount, 1, 'rowCount should be 1');
+				connection.query('SELECT * FROM '+tableName+' WHERE a IN (@value)', {value: [23, 1234]}, function(err, result){
+					assert.ifError(err);
+					assert.strictEqual(result.rows.length, 1, 'Incorrect number of rows returned - there can be only one!');
+					assert.strictEqual(result.rowCount, result.rows.length, 'rowCount and rows.length mismatch');
+					assert.strictEqual(result.rows[0].a, 1234, 'Value from data base should be new (1234) not old (23)');
+					done();
+				}).on('error', function(err){
+					console.log(err);
+					done();
+				});
 			}).on('error', function(err){
 				console.log(err);
 				done();
@@ -127,7 +150,7 @@ describe('SQL', function(){
 			});
 			connection.query('SELECT * FROM '+tableName+' WHERE a = @value', {value: 42}, function(err, result){
 				assert.ifError(err);
-				assert.strictEqual(result.rows.length, 0, 'Look like there are still some rows in the data base');
+				assert.strictEqual(result.rows.length, 0, 'Looks like there are still some rows in the data base');
 				assert.strictEqual(result.rowCount, result.rows.length, 'rowCount and rows.length mismatch');
 				done();
 			}).on('error', function(err){
