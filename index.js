@@ -614,6 +614,8 @@ Object.defineProperty(exports, 'positionalParameterPrefix', { value: '?', writab
  */
 exports.createConnection = function(config, callback) {
 	var result = new sql.Connection(parseConfig(config));
+	// `id` is added only for testing purposes and should not be counted on
+	result.id = process.hrtime().join('.');
 	result._isConnected = false;
 
 	makeQueryable(result);
