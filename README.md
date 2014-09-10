@@ -1,18 +1,18 @@
 # any-db-mssql
 
-This is the MSSQL adapter for Any-DB. It relies on the [Tedious][1]
+This is the MSSQL adapter for [Any-DB][1]. It relies on the [Tedious][2]
 database driver to create connection and query objects that conform to the
-[Any-DB API][2].
+[Any-DB API][3].
 
 This adapter is not yet fully compatible with Any-DB, because Query objects
-are not instances of stream.Readable, they are just event emitters.
+are not instances of [`stream.Readable`][4], they are just event emitters.
 It means that they do not provide `pause` and `resume` methods yet.
 
 ## API extensions
 
 The connections this module creates inherit from the constructor
 functions in `require('tedious')`, so any methods that `tedious` supports
-beyond those specified by Any-DB [Connection][3] are also available to you.
+beyond those specified by Any-DB [Connection][5] are also available to you.
 
 Keep in mind that these methods will *not* necessarily work with
 other backends.
@@ -37,7 +37,7 @@ Additionally parameter values can be objects, each with two properties:
 Where type is a Tedious type object, which can be obtained through a call to
 `getTypeByName('typeName')` function, also provided by this module.
 Aside from "native" types used by Tedious and MSSQL, following "generic"
-types are recognized (following example set by [Sails][4]):
+types are recognized (following example set by [Sails][6]):
 
 - `integer`
 - `float`
@@ -66,7 +66,7 @@ JavaScript type of value passed to it.
 ## Running tests
 
 Before running tests, set some environment variables to configure access
-to the data base:
+to the data base (on Windows shell, replace `export` with `set`):
 
     export DB_NAME=test
     export DB_USER=sa
@@ -74,14 +74,14 @@ to the data base:
     export DB_INST=SQLEXPRESS
     export DB_HOST=localhost
 
-Every one of the environment variables mentioned above is optional,
+Each of the environment variables mentioned above is optional,
 test will use defaults if value will not be provided.
 
 Run tests the node way, for example:
 
     npm install && npm test
 
-See test configuration file ([test/support/config.js][5]) for more information.
+See test configuration file ([test/support/config.js][7]) for more information.
 
 To test against any-db-adapter-spec, call it its tests from any-db-mssql
 adapter's directory set as current directory, for example it can be called
@@ -94,7 +94,7 @@ Of course, if it's not executed after tests provided with this module,
 
 ## Generating JSDoc
 
-Generate documentation using [JSDoc][6]:
+Generate documentation using [JSDoc][8]:
 
     jsdoc -c jsdoc.conf.json -d documentation index.js
 
@@ -103,9 +103,11 @@ Generate documentation using [JSDoc][6]:
 
 3-clause BSD
 
-[1]: http://pekim.github.io/tedious/
-[2]: https://github.com/grncdr/node-any-db-adapter-spec
-[3]: https://github.com/grncdr/node-any-db-adapter-spec#connection
-[4]: http://sailsjs.org/#/documentation/concepts/ORM/Attributes.html?q=attribute-options
-[5]: test/support/config.js
-[6]: http://usejsdoc.org/
+[1]: https://github.com/grncdr/node-any-db
+[2]: http://pekim.github.io/tedious/
+[3]: https://github.com/grncdr/node-any-db-adapter-spec
+[4]: https://github.com/grncdr/node-any-db-adapter-spec#connection
+[5]: http://nodejs.org/api/stream.html#stream_class_stream_readable
+[6]: http://sailsjs.org/#/documentation/concepts/ORM/Attributes.html?q=attribute-options
+[7]: test/support/config.js
+[8]: http://usejsdoc.org/
