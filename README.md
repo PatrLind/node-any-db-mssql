@@ -84,7 +84,7 @@ Run tests the node way, for example:
 See test configuration file ([test/support/config.js][7]) for more information.
 
 To test against any-db-adapter-spec, call its test from any-db-mssql
-adapter's directory set as current directory, e.g., it can be called
+adapter's directory set as current directory, i.e., it can be called
 right after `npm test` mentioned above:
 
     node ../node-any-db-adapter-spec/bin/test-any-db-adapter --url 'mssql://'$DB_USER':'$DB_PASS'@'$DB_HOST'/'$DB_NAME'?instanceName='$DB_INST
@@ -92,6 +92,9 @@ right after `npm test` mentioned above:
 In Windows shell, use following command line:
 
 	node ..\node-any-db-adapter-spec\bin\test-any-db-adapter --url "mssql://%DB_USER%:%DB_PASS%@%DB_HOST%/%DB_NAME%?instanceName=%DB_INST%"
+
+`node-any-db-adapter-spec` files should exist before running command
+mentioned above.
 
 
 ## Generating JSDoc
