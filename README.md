@@ -106,8 +106,8 @@ Generate documentation using [JSDoc][8]:
 [1]: https://github.com/grncdr/node-any-db
 [2]: http://pekim.github.io/tedious/
 [3]: https://github.com/grncdr/node-any-db-adapter-spec
-[4]: https://github.com/grncdr/node-any-db-adapter-spec#connection
-[5]: http://nodejs.org/api/stream.html#stream_class_stream_readable
+[4]: http://nodejs.org/api/stream.html#stream_class_stream_readable
+[5]: https://github.com/grncdr/node-any-db-adapter-spec#connection
 [6]: http://sailsjs.org/#/documentation/concepts/ORM/Attributes.html?q=attribute-options
 [7]: test/support/config.js
 [8]: http://usejsdoc.org/
