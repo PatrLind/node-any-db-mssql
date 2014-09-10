@@ -66,7 +66,7 @@ JavaScript type of value passed to it.
 ## Running tests
 
 Before running tests, set some environment variables to configure access
-to the data base (on Windows shell, replace `export` with `set`):
+to the data base (in Windows shell, replace `export` with `set`):
 
     export DB_NAME=test
     export DB_USER=sa
@@ -83,13 +83,15 @@ Run tests the node way, for example:
 
 See test configuration file ([test/support/config.js][7]) for more information.
 
-To test against any-db-adapter-spec, call it its tests from any-db-mssql
-adapter's directory set as current directory, for example it can be called
-right after npm test mentioned above:
+To test against any-db-adapter-spec, call its test from any-db-mssql
+adapter's directory set as current directory, e.g., it can be called
+right after `npm test` mentioned above:
 
     node ../node-any-db-adapter-spec/bin/test-any-db-adapter --url 'mssql://'$DB_USER':'$DB_PASS'@'$DB_HOST'/'$DB_NAME'?instanceName='$DB_INST
 
-Of course, if it's not executed after tests provided with this module,
+In Windows shell, use following command line:
+
+	node ..\node-any-db-adapter-spec\bin\test-any-db-adapter --url "mssql://%DB_USER%:%DB_PASS%@%DB_HOST%/%DB_NAME%?instanceName=%DB_INST%"
 
 
 ## Generating JSDoc
