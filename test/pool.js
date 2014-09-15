@@ -128,7 +128,7 @@ ifPoolExists('Pool', function(){
 		var results = [];
 		var delays = [4, 3, 2, 1];
 
-		this.timeout((delays[0]+1) * 1000);
+		this.timeout((delays[0]+1) * 2000);
 
 		var onResult = function(value){
 			results.push(value);
@@ -140,7 +140,7 @@ ifPoolExists('Pool', function(){
 		var onDone = function(){
 			assert.strictEqual(results.length, delays.length, 'There should be '+delays.length+' result values');
 			delays.forEach(function(delay, index){
-				assert.strictEqual(results[delay-1], index, 'First result should be from second query');
+				assert.strictEqual(results[delay-1], index, 'Result '+(delay-1)+' should be equal '+index);
 			});
 			done();
 		};

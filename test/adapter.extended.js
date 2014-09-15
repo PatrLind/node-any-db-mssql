@@ -9,15 +9,15 @@ describe('Adapter Extended', function(){
 	'use strict';
 
 	it('should provide namedParameterPrefix property', function(){
-		assert.ok(adapter.namedParameterPrefix);
-		assert.strictEqual(adapter.namedParameterPrefix, '@');
-		assert.throws(function(){ adapter.namedParameterPrefix = ':'; });
+		assert.ok(adapter.namedParameterPrefix, 'Extended adapter should provide namedParameterPrefix');
+		assert.strictEqual(adapter.namedParameterPrefix, '@', 'Tedious used @ for named parameters');
+		assert.throws(function(){ adapter.namedParameterPrefix = ':'; }, 'namedParameterPrefix should be read only');
 	});
 
 	it('should provide positionalParameterPrefix property', function(){
-		assert.ok(adapter.positionalParameterPrefix);
-		assert.strictEqual(adapter.positionalParameterPrefix, '?');
-		assert.throws(function(){ adapter.positionalParameterPrefix = '!'; });
+		assert.ok(adapter.positionalParameterPrefix, 'Extended adapter should provide positionalParameterPrefix');
+		assert.strictEqual(adapter.positionalParameterPrefix, '?', 'Adapter recognizes only ? for positional parameters');
+		assert.throws(function(){ adapter.positionalParameterPrefix = '!'; }, 'positionalParameterPrefix should be read only');
 	});
 
 	it('should provide `getTypeByName()` function', function(){
