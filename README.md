@@ -97,11 +97,11 @@ In Windows shell, use following command line:
 mentioned above.
 
 
-## Generating JSDoc
+## Documentation
 
 Generate documentation using [JSDoc][8]:
 
-    jsdoc -c jsdoc.conf.json -d documentation index.js
+    jsdoc -c jsdoc.json -d documentation index.js
 
 
 ## License
