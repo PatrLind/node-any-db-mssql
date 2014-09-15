@@ -28,6 +28,7 @@
     "any-db": "~2.1.0"
   },
   "devDependencies": {
+    "any-db-pool": "^2.1.0",
     "any-db-adapter-spec": "~2.1.0"
   }
 }
