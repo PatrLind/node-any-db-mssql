@@ -81,7 +81,7 @@ Install all dependencies needed for testing:
 
     npm install
 
-Run tests the node way, for example:
+Run tests the node way:
 
     npm test
 
