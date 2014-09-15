@@ -77,9 +77,13 @@ to the data base (in Windows shell, replace `export` with `set`):
 Each of the environment variables mentioned above is optional,
 test will use defaults if value will not be provided.
 
+Install all dependencies needed for testing:
+
+    npm install
+
 Run tests the node way, for example:
 
-    npm install && npm test
+    npm test
 
 See test configuration file ([test/support/config.js][7]) for more information.
 
