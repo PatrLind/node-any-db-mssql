@@ -627,15 +627,7 @@ exports.createConnection = function(config, callback) {
 			result.on('close', callback);
 		}
 
-		if (result._isConnected) {
-			result.close();
-		}
-		else {
-			// Work around Tedious bug (?) which throws error when connection is closed
-			// before finishing connecting.
-			// TODO: remove this if/when Tedious stops throwing error (https://github.com/pekim/tedious/issues/185)?
-			setImmediate(result.end);
-		}
+		result.close();
 	};
 
 	if (callback && callback instanceof Function) {
@@ -647,6 +639,12 @@ exports.createConnection = function(config, callback) {
 
 			callback._done = true;
 			callback(err, result);
+		});
+	}
+
+	if (result.config.options.hasOwnProperty('debug')) {
+		result.on('debug', function(msg) {
+			console.log(msg);
 		});
 	}
 

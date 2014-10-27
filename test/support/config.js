@@ -18,6 +18,12 @@ module.exports = {
 	port: process.env.DB_PORT || false,
 	database: process.env.DB_NAME || false,
 	options: {
-		instanceName: process.env.DB_INST || false
+		instanceName: process.env.DB_INST || false/*,
+		debug: {
+			packet: true,
+			token: true,
+			payload: true,
+			data: true
+		}*/
 	}
 };
