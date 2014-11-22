@@ -1,4 +1,5 @@
 var EventEmitter = require('events').EventEmitter;
+var Extend = require('util')._extend;
 var sql = require('tedious');
 
 /**
@@ -723,6 +724,34 @@ exports.createQuery = function(query, parameters, callback) {
 	result._emittedError = false;
 
 	return result;
+};
+
+/**
+ * Support API of node-any-db-params (https://github.com/grncdr/node-any-db-params).
+ * This is based on the code of `prefixed.js` from that module.
+ *
+ * This function will be called by node-any-db-params, but also can be used directly.
+ * @see {@link https://github.com/grncdr/node-any-db-params}
+ */
+exports.createParamAccessor = function(){
+	var values = {};
+
+	var param = function param(name, value) {
+		var prefixedName = '@' + name;
+
+		if (arguments.length > 1) {
+			values[name] = value;
+		}
+		else if (!values.hasOwnProperty(name)) {
+			throw new Error('Undefined parameter ' + name);
+		}
+
+		return '@' + name;
+	};
+
+	param.values = Extend.bind(null, {}, values);
+
+	return param;
 };
 
 /**

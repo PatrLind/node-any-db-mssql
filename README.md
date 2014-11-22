@@ -8,11 +8,15 @@ This adapter is not yet fully compatible with Any-DB, because Query objects
 are not instances of [`stream.Readable`][4], they are just event emitters.
 It means that they do not provide `pause` and `resume` methods yet.
 
+This adapter provides also `createParamAccessor` method, that may be used
+with [`Any-DB-Params`][5] module, or directly - just like it was returned
+from that module.
+
 ## API extensions
 
 The connections this module creates inherit from the constructor
 functions in `require('tedious')`, so any methods that `tedious` supports
-beyond those specified by Any-DB [Connection][5] are also available to you.
+beyond those specified by Any-DB [Connection][6] are also available to you.
 
 Keep in mind that these methods will *not* necessarily work with
 other backends.
@@ -37,7 +41,7 @@ Additionally parameter values can be objects, each with two properties:
 Where type is a Tedious type object, which can be obtained through a call to
 `getTypeByName('typeName')` function, also provided by this module.
 Aside from "native" types used by Tedious and MSSQL, following "generic"
-types are recognized (following example set by [Sails][6]):
+types are recognized (following example set by [Sails][7]):
 
 - `integer`
 - `float`
@@ -85,7 +89,7 @@ Run tests the node way:
 
     npm test
 
-See test configuration file ([test/support/config.js][7]) for more information.
+See test configuration file ([test/support/config.js][8]) for more information.
 
 To test against any-db-adapter-spec, call its test from any-db-mssql
 adapter's directory set as current directory, i.e., it can be called
@@ -100,10 +104,14 @@ In Windows shell, use following command line:
 `node-any-db-adapter-spec` files should exist before running command
 mentioned above.
 
+If SQLSERVER is set up in VirtualBox guest machine, and tests are to be run on host OS,
+configure SQLSERVER guest so that it accepts connections from host OS. For example:
+https://iqbalnaved.wordpress.com/2013/09/28/configuration-for-connecting-to-mssql-server-2008-on-virtualbox-guestos-from-ubuntu-12-04-hostos-using-pyodbc-3-0-8/
+
 
 ## Documentation
 
-Generate documentation using [JSDoc][8]:
+Generate documentation using [JSDoc][9]:
 
     jsdoc -c jsdoc.json -d documentation index.js
 
@@ -116,7 +124,8 @@ Generate documentation using [JSDoc][8]:
 [2]: http://pekim.github.io/tedious/
 [3]: https://github.com/grncdr/node-any-db-adapter-spec
 [4]: http://nodejs.org/api/stream.html#stream_class_stream_readable
-[5]: https://github.com/grncdr/node-any-db-adapter-spec#connection
-[6]: http://sailsjs.org/#/documentation/concepts/ORM/Attributes.html?q=attribute-options
-[7]: test/support/config.js
-[8]: http://usejsdoc.org/
+[5]: https://github.com/grncdr/node-any-db-params
+[6]: https://github.com/grncdr/node-any-db-adapter-spec#connection
+[7]: http://sailsjs.org/#/documentation/concepts/ORM/Attributes.html?q=attribute-options
+[8]: test/support/config.js
+[9]: http://usejsdoc.org/
