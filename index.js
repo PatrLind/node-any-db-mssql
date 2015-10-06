@@ -156,9 +156,10 @@ exports.prepareQueryParameters = function(query) {
 
 	var newParameters = {};
 	var targetPrefix = exports.namedParameterPrefix;
-	var sourcePrefix = exports.positionalParameterPrefix;
+	var sourcePrefixPositional = exports.positionalParameterPrefix;
+	var sourcePrefixIndexed = exports.indexedParameterPrefix;
 
-	var positional = query.values instanceof Array;
+	var positionalOrIndexed = query.values instanceof Array;
 
 	var sql = query.text;
 
@@ -166,9 +167,10 @@ exports.prepareQueryParameters = function(query) {
 		value = query.values[keys[i]];
 		if (!(value instanceof Array)) {
 			// Tedious does not support positional parameters, so we have to replace them with named parameters.
-			if (positional) {
+			if (positionalOrIndexed) {
 				newParameters['p'+i] = value;
-				sql = sql.replace(sourcePrefix, targetPrefix+'p'+i);
+				sql = sql.replace(sourcePrefixPositional, targetPrefix+'p'+i);
+				sql = sql.replace(new RegExp('\\'+sourcePrefixIndexed+(i+1), 'g'), targetPrefix+'p'+i);
 			}
 			else {
 				newParameters[keys[i]] = value;
@@ -183,8 +185,9 @@ exports.prepareQueryParameters = function(query) {
 			newParameters[keys[i]+j] = value[j];
 		}
 
-		if (positional) {
-			sql.replace(sourcePrefix, param.join(', '));
+		if (positionalOrIndexed) {
+			sql.replace(sourcePrefixPositional, param.join(', '));
+			sql.replace(new RegExp('\\'+sourcePrefixIndexed+(i+1), 'g'), param.join(', '));
 		}
 		else {
 			temp = new RegExp(temp, 'g');
@@ -606,6 +609,19 @@ exports.positionalParameterPrefix = '?';
 Object.defineProperty(exports, 'positionalParameterPrefix', { value: '?', writable : false });
 
 /**
+ * Extend Any-DB API with indexedParameterPrefix flag, that can be used when build SQL query strings
+ * with indexed parameters, for example:
+ *
+ * ```
+ * connection.query(
+ *   'SELECT '+adapter.indexedParameterPrefix+' AS test`,
+ *   [ 1 ]
+ * );
+ * ``` */
+exports.indexedParameterPrefix = '$';
+Object.defineProperty(exports, 'indexedParameterPrefix', { value: '$', writable : false });
+
+/**
  * Implementation of `Adapter.createConnection` method defined by Any-DB API.
  *
  * @see {@link https://github.com/grncdr/node-any-db-adapter-spec#adaptercreateconnection}
@@ -628,7 +644,7 @@ exports.createConnection = function(config, callback) {
 			result.on('close', callback);
 		}
 
-		result.close();
+			result.close();
 	};
 
 	if (callback && callback instanceof Function) {
