@@ -266,7 +266,7 @@ var _typeCheck = (function(){
  */
 exports.detectParameterType = function(value) {
 	if (value === null || typeof value === 'undefined') {
-		return sql.TYPES.Null;
+		return sql.TYPES.NVarChar;
 	}
 	else if ((value instanceof Boolean) || value === true || value === false) {
 		return sql.TYPES.Bit;
@@ -276,6 +276,9 @@ exports.detectParameterType = function(value) {
 	}
 	else if (value instanceof Date) {
 		return sql.TYPES.DateTimeOffset;
+	}
+	else if (value === '') {
+		return sql.TYPES.NVarChar;
 	}
 
 	return _typeCheck.exec(value) || sql.TYPES.VarBinary;
@@ -405,11 +408,8 @@ var setRequestParameters = function(request, parameters) {
 var execQuery = function(query, parameters, callback) {
 	query = this.adapter.createQuery(query, parameters, callback);
 
-	if (query.values) {
-		exports.prepareQueryParameters(query);
-	}
-
-	query._request = new sql.Request(query.text, function(err, rowCount) {
+	var requestDone = function (err, rowCount) {
+		//console.log('--> ', query.text, err);
 		query._isDone = true;
 
 		if (query._resultSet) {
@@ -443,90 +443,115 @@ var execQuery = function(query, parameters, callback) {
 		if (query.callback || EventEmitter.listenerCount(query, 'data')) {
 			query.emit('end');
 		}
-	});
+	};
 
-	if (query.values) {
-		setRequestParameters(query._request, query.values);
-	}
-
-	query._request.on('row', function(columns){
-		var row = {};
-		for (var i = 0; i < columns.length; i++) {
-			row[columns[i].metadata.colName] = columns[i].value;
+	if (query.text === 'BEGIN' || query.text === 'BEGIN TRANSACTION') {
+		this.beginTransaction(requestDone);
+	} else if (query.text === 'COMMIT') {
+		this.commitTransaction(requestDone);
+	} else if (query.text === 'ROLLBACK') {
+		this.rollbackTransaction(requestDone);
+	} else {
+		if (query.values) {
+			exports.prepareQueryParameters(query);
 		}
 
-		query.emit('data', row);
+		query._request = new sql.Request(query.text, requestDone);
 
-		if (query._resultSet && query._resultSet.rows instanceof Array) {
-			query._resultSet.rows.push(row);
+		if (query.values) {
+			setRequestParameters(query._request, query.values);
 		}
-	});
 
-	query._request.on('columnMetadata', function(columns){
-		var fields = [];
-
-		columns.forEach(function(column){
-			if (!column.colName) {
-				return;
+		query._request.on('row', function(columns){
+			var row = {};
+			for (var i = 0; i < columns.length; i++) {
+				var column = columns[i];
+				// Fix for BIGINT numbers being parsed as string
+				if (column.metadata.type == sql.TYPES.IntN) {
+					if (typeof column.value === 'string') {
+						var value = parseInt(column.value);
+						if (isFinite(value)) {
+							column.value = value;
+						}
+					}
+				}
+				row[column.metadata.colName] = column.value;
 			}
 
-			var field = {
-				name: column.colName
+			query.emit('data', row);
+
+			if (query._resultSet && query._resultSet.rows instanceof Array) {
+				query._resultSet.rows.push(row);
+			}
+		});
+
+		query._request.on('columnMetadata', function(columns){
+			var fields = [];
+
+			columns.forEach(function(column){
+				if (!column.colName) {
+					return;
+				}
+
+				var field = {
+					name: column.colName
+				};
+
+				Object.keys(column).forEach(function(name){
+					field[name] = column[name];
+				});
+
+				fields.push(field);
+			});
+
+			query.emit('fields', fields);
+
+			if (query._resultSet) {
+				query._resultSet.fields = fields;
+			}
+		});
+
+		query._request.on('error', function(err){
+			// According to Any-DB API, query error event can be emitted only once per query:
+			// https://github.com/grncdr/node-any-db-adapter-spec#error-event-1
+
+			if (!query._emittedError) {
+				query._emittedError = true;
+				query.emit('error', err);
+			}
+		});
+
+		if (query.callback && query.callback instanceof Function) {
+			query._resultSet = {
+				fields: [],
+				rows: [],
+				rowCount: 0,
+				lastInsertId: null, // Not supported
+				// Output parameter values
+				values: []
 			};
 
-			Object.keys(column).forEach(function(name){
-				field[name] = column[name];
+			// We collect parameters only when _resultSet is being used.
+			query._request.on('returnValue', function(parameterName, value, metadata){
+				query._resultSet.values.push({
+					name: parameterName,
+					value: value,
+					meta: metadata
+				});
 			});
 
-			fields.push(field);
-		});
-
-		query.emit('fields', fields);
-
-		if (query._resultSet) {
-			query._resultSet.fields = fields;
+			// According to Any-DB API, callback should be subscribed to the error event:
+			// https://github.com/grncdr/node-any-db-adapter-spec#error-event-1
+			query.on('error', query.callback);
 		}
-	});
-
-	query._request.on('error', function(err){
-		// According to Any-DB API, query error event can be emitted only once per query:
-		// https://github.com/grncdr/node-any-db-adapter-spec#error-event-1
-		if (!query._emittedError) {
-			query._emittedError = true;
-			query.emit('error', err);
+		else {
+			// Add empty error handler, just in case there is none set up by the caller.
+			// This fixes Any-DB adapter spec tests.
+			query.on('error', function(){});
 		}
-	});
 
-	if (query.callback && query.callback instanceof Function) {
-		query._resultSet = {
-			fields: [],
-			rows: [],
-			rowCount: 0,
-			lastInsertId: null, // Not supported
-			// Output parameter values
-			values: []
-		};
-
-		// We collect parameters only when _resultSet is being used.
-		query._request.on('returnValue', function(parameterName, value, metadata){
-			query._resultSet.values.push({
-				name: parameterName,
-				value: value,
-				meta: metadata
-			});
-		});
-
-		// According to Any-DB API, callback should be subscribed to the error event:
-		// https://github.com/grncdr/node-any-db-adapter-spec#error-event-1
-		query.on('error', query.callback);
+		this.execNextInQueue(query);
 	}
-	else {
-		// Add empty error handler, just in case there is none set up by the caller.
-		// This fixes Any-DB adapter spec tests.
-		query.on('error', function(){});
-	}
-
-	this.execNextInQueue(query);
 
 	return query;
 };
