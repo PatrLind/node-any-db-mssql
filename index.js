@@ -467,7 +467,7 @@ var execQuery = function(query, parameters, callback) {
 			for (var i = 0; i < columns.length; i++) {
 				var column = columns[i];
 				// Fix for BIGINT numbers being parsed as string
-				if (column.metadata.type == sql.TYPES.IntN) {
+				if (column.metadata.type === sql.TYPES.IntN || column.metadata.type === sql.TYPES.BigInt) {
 					if (typeof column.value === 'string') {
 						var value = parseInt(column.value);
 						if (isFinite(value)) {
