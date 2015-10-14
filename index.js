@@ -281,7 +281,14 @@ exports.detectParameterType = function(value) {
 		return sql.TYPES.NVarChar;
 	}
 
-	return _typeCheck.exec(value) || sql.TYPES.VarBinary;
+	var type = _typeCheck.exec(value) || sql.TYPES.VarBinary;
+	if (type === sql.TYPES.Int) {
+		// Check if we should promote to BigInt (value larger than 2^31-1 && -2^31
+		if (value > 2147483647 || value < -2147483648) {
+			type = sql.TYPES.BigInt;
+		}
+	}
+	return type;
 };
 
 /**
