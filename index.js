@@ -166,7 +166,7 @@ exports.prepareQueryParameters = function(query) {
 	for (i = 0; i < keys.length; i++) {
 		value = query.values[keys[i]];
 		if (!(value instanceof Array)) {
-			if (value instanceof Object)
+			if (value instanceof Object && !(value instanceof Date))
 				value = JSON.stringify(value);
 			// Tedious does not support positional parameters, so we have to replace them with named parameters.
 			if (positionalOrIndexed) {
