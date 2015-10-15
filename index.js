@@ -172,8 +172,8 @@ exports.prepareQueryParameters = function(query) {
 			if (positionalOrIndexed) {
 				newParameters['p'+i] = value;
 				sql = sql.replace(sourcePrefixPositional, targetPrefix+'p'+i);
-				sql = sql.replace(new RegExp('\\'+sourcePrefixIndexed+'('+(i+1)+')(\\D)', 'g'), function(str, group1, group2) {
-					return targetPrefix+'p'+group1+group2;
+				sql = sql.replace(new RegExp('\\'+sourcePrefixIndexed+'('+(i+1)+')(\\D|$)', 'g'), function(str, group1, group2) {
+					return targetPrefix+'p'+i+group2;
 				});
 			}
 			else {
@@ -191,8 +191,8 @@ exports.prepareQueryParameters = function(query) {
 
 		if (positionalOrIndexed) {
 			sql = sql.replace(sourcePrefixPositional, param.join(', '));
-			sql = sql.replace(new RegExp('\\'+sourcePrefixIndexed+'('+(i+1)+')(\\D)', 'g'), function(str, group1, group2) {
-				return targetPrefix+'p'+group1+group2;
+			sql = sql.replace(new RegExp('\\'+sourcePrefixIndexed+'('+(i+1)+')(\\D|$)', 'g'), function(str, group1, group2) {
+				return targetPrefix+'p'+i+group2;
 			});
 		}
 		else {
