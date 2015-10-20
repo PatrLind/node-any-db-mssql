@@ -42,7 +42,8 @@ var defaultConfig = {
 	options: {
 		port: 1433,
 		instanceName: false,
-		database: 'myDataBase'
+		database: 'myDataBase',
+		requestTimeout: 90*1000
 	}
 };
 
@@ -76,6 +77,7 @@ var parseConfig = function(anyConfig) {
 	else {
 		result.options.port         = anyConfig.port || result.options.port || defaultConfig.options.port;
 	}
+	result.options.requestTimeout = anyConfig.requestTimeout || result.options.requestTimeout || defaultConfig.options.requestTimeout;
 
 	return result;
 };
