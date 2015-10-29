@@ -43,9 +43,12 @@ var defaultConfig = {
 		port: 1433,
 		instanceName: false,
 		database: 'myDataBase',
-		requestTimeout: 90*1000
+		requestTimeout: 90*1000,
+		useUTC: false
 	}
 };
+
+var specialDataHandler = null;
 
 /**
  * Any DB config.
@@ -78,6 +81,7 @@ var parseConfig = function(anyConfig) {
 		result.options.port         = anyConfig.port || result.options.port || defaultConfig.options.port;
 	}
 	result.options.requestTimeout = anyConfig.requestTimeout || result.options.requestTimeout || defaultConfig.options.requestTimeout;
+	result.options.useUTC = anyConfig.useUTC || result.options.useUTC || defaultConfig.options.useUTC;
 
 	return result;
 };
@@ -225,8 +229,8 @@ var _typeCheck = (function(){
 		// when string contains letter "T", MSSQL rejects time value without seconds specified,
 		// it also rejects any time value that contains only hour value (omitting minutes and seconds),
 		// it also rejects formats without colons.
-		'(^\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}\\:\\d{2}(?:\\:\\d{2}(?:\\.\\d+)?)?$)': sql.TYPES.DateTime2,
-		'(^\\d{4}-\\d{2}-\\d{2}T\\d{2}\\:\\d{2}\\:\\d{2}(?:\\.\\d+)?$)': sql.TYPES.DateTime2,
+		'(^\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}\\:\\d{2}(?:\\:\\d{2}(?:\\.\\d+)?)?$)': sql.TYPES.DateTimeOffset,
+		'(^\\d{4}-\\d{2}-\\d{2}T\\d{2}\\:\\d{2}\\:\\d{2}(?:\\.\\d+)?$)': sql.TYPES.DateTimeOffset,
 		'(^\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}\\:\\d{2}(?:\\:\\d{2}(?:\\.\\d+)?)?(?:[\\+\\-]\\d{2}\\:\\d{2}|Z)?$)': sql.TYPES.DateTimeOffset,
 		'(^\\d{4}-\\d{2}-\\d{2}T\\d{2}\\:\\d{2}\\:\\d{2}(?:\\.\\d+)?(?:[\\+\\-]\\d{2}\\:\\d{2}|Z)?$)': sql.TYPES.DateTimeOffset,
 		'(^[\\w\\W]+$)': sql.TYPES.NVarChar
@@ -335,12 +339,25 @@ var setRequestParameters = function(request, parameters) {
 			type = exports.detectParameterType(value);
 		}
 
+		if (type === sql.TYPES.DateTimeOffset || type === sql.TYPES.DateTime2 || type === sql.TYPES.DateTime) {
+			if (!(value instanceof Date) && typeof value === 'string') {
+				// This avoids a bug regarding string date parsing in Tedious (< 1.13.1 at the time of writing)
+				value = new Date(Date.parse(value));
+			}
+		}
+
 		if (!(value instanceof Array)) {
 			request.addParameter(keys[i], type, value, options);
 			continue;
 		}
 	}
 };
+
+exports.setSpecialDataHandler = function(handler) {
+	var oldHandler = specialDataHandler;
+	specialDataHandler = handler;
+	return oldHandler;
+}
 
 /**
  * Generic callback function.
@@ -487,6 +504,9 @@ var execQuery = function(query, parameters, callback) {
 							column.value = value;
 						}
 					}
+				}
+				if (specialDataHandler) {
+					specialDataHandler(column);
 				}
 				row[column.metadata.colName] = column.value;
 			}
