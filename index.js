@@ -70,6 +70,12 @@ var parseConfig = function(anyConfig) {
 	result.userName         = anyConfig.user || anyConfig.userName || defaultConfig.userName;
 	result.password         = anyConfig.password || defaultConfig.password;
 	result.server           = anyConfig.host || anyConfig.server || defaultConfig.host;
+
+	// Tedious expects domain on the first level, and not in options
+	if (anyConfig.options && anyConfig.options.domain) {
+		result.domain = anyConfig.options.domain;
+	}
+
 	result.options          = anyConfig.options || {};
 	result.options.database = anyConfig.database || result.options.database || defaultConfig.options.database;
 
