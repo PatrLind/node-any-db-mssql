@@ -71,10 +71,9 @@ var parseConfig = function(anyConfig) {
 	result.password         = anyConfig.password || defaultConfig.password;
 	result.server           = anyConfig.host || anyConfig.server || defaultConfig.host;
 
-	result.domain = anyConfig.domain || anyConfig.options.domain || '';
-
 	result.options          = anyConfig.options || {};
 	result.options.database = anyConfig.database || result.options.database || defaultConfig.options.database;
+	result.domain = anyConfig.domain || result.options.domain || '';
 
 	if (anyConfig.instanceName || result.options.instanceName) {
 		result.options.instanceName = anyConfig.instanceName || result.options.instanceName;
