@@ -174,7 +174,7 @@ exports.prepareQueryParameters = function(query) {
 	for (i = 0; i < keys.length; i++) {
 		value = query.values[keys[i]];
 		if (!(value instanceof Array)) {
-			if (value instanceof Object && !(value instanceof Date))
+			if (value instanceof Object && !(value instanceof Date) && !(value instanceof Buffer))
 				value = JSON.stringify(value);
 			// Tedious does not support positional parameters, so we have to replace them with named parameters.
 			if (positionalOrIndexed) {
@@ -288,6 +288,9 @@ exports.detectParameterType = function(value) {
 	}
 	else if (value instanceof Date) {
 		return sql.TYPES.DateTimeOffset;
+	}
+	else if (value instanceof Buffer) {
+		return sql.TYPES.VarBinary;
 	}
 	else if (value === '') {
 		return sql.TYPES.NVarChar;
