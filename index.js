@@ -37,7 +37,7 @@ var sql = require('tedious');
  */
 var defaultConfig = {
 	userName: 'sa',
-	password: 'Password123',
+	password: '**********',
 	server: 'localhost',
 	options: {
 		port: 1433,
@@ -485,7 +485,18 @@ var execQuery = function(query, parameters, callback) {
 	} else if (query.text === 'COMMIT') {
 		this.commitTransaction(requestDone);
 	} else if (query.text === 'ROLLBACK') {
-		this.rollbackTransaction(requestDone);
+		var that = this;
+		// There seems to be a bug somewhere that makes Tedious not be in the LoggedIn state
+		// (it is in SentClientRequest state) and that causes us to not be able to call rollack at this moment in time.
+		// Tests have shown that this can be worked around by using a timer. This is an ugly hack though...
+		setTimeout(function() {
+			that.rollbackTransaction(function (err) {
+				if (err) {
+					console.error('Rollback error: ', err);
+				}
+				requestDone(err);
+			});
+		}, 0);
 	} else {
 		if (query.values) {
 			exports.prepareQueryParameters(query);
